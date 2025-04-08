@@ -60,12 +60,46 @@ function M.headers( parent, on_click )
   return frame
 end
 
+function M.roll_type_dropdown()
+  if not M.roll_type_dropdown_frame then
+    M.roll_type_dropdown_frame = m.api.CreateFrame( "Frame", "RollForRollTypeDropdown" )
+    M.roll_type_dropdown_frame.displayMode = "MENU"
+  end
+
+  if M.roll_type_dropdown_frame.initialize ~= M.roll_type_dropdown_menu then
+    m.api.CloseDropDownMenus()
+    M.roll_type_dropdown_frame.initialize = M.roll_type_dropdown_menu
+  end
+
+  M.roll_type_dropdown_frame.value = this.inner.value
+  M.roll_type_dropdown_frame.on_update_item = this.inner.on_update_item
+
+  local row = this:GetParent()
+  m.api.ToggleDropDownMenu( 1, nil, M.roll_type_dropdown_frame, row:GetName(), row:GetWidth() - 57, 0 )
+end
+
+function M.roll_type_dropdown_menu()
+  local info = {}
+
+  for roll_type in pairs( m.Types.RollType ) do
+    info.text = m.roll_type_color( roll_type, m.roll_type_abbrev( roll_type ) )
+    info.checked = M.roll_type_dropdown_frame.value == roll_type
+    info.arg1 = roll_type
+    info.func = function( rt )
+      if M.roll_type_dropdown_frame.on_update_item then
+        M.roll_type_dropdown_frame.on_update_item( rt )
+      end
+    end
+    m.api.UIDropDownMenu_AddButton( info, 1 )
+  end
+end
+
 function M.winner( parent )
-  local frame = m.api.CreateFrame( "Button", nil, parent )
-  frame:SetWidth( 250 )
+  M.winner_rows = M.winner_rows and M.winner_rows + 1 or 1
+  local frame = m.api.CreateFrame( "Button", "RollForWinnerRow" .. M.winner_rows, parent )
   frame:SetHeight( 14 )
-  frame:SetPoint( "LEFT", parent:GetParent(), "LEFT", 0, 0 )
-  frame:SetPoint( "RIGHT", parent:GetParent(), "RIGHT", 0, 0 )
+  frame:SetPoint( "LEFT", parent, "LEFT", 0, 0 )
+  frame:SetPoint( "RIGHT", parent, "RIGHT", 0, 0 )
   frame:SetFrameStrata( "DIALOG" )
   frame:SetFrameLevel( parent:GetFrameLevel() + 1 )
   frame:SetBackdrop( {
@@ -76,23 +110,6 @@ function M.winner( parent )
 
   local function blue_hover( a )
     frame:SetBackdropColor( 0.125, 0.624, 0.976, a )
-  end
-
-  local function truncate_item_text( font_string, max_width )
-    local item = font_string:GetText()
-    local original_text = string.gsub( m.ItemUtils.get_item_name( font_string:GetText() ), "([%(%)%.%%%+%-%*%?%[%]%^%$])", "%%%1" )
-    local truncated_text = original_text
-
-    while font_string:GetStringWidth() > max_width and string.len( truncated_text ) > 4 do
-      truncated_text = string.sub( truncated_text, 1, -2 )
-      font_string:SetText( "[" .. truncated_text .. "...]" )
-    end
-
-    if original_text == truncated_text then
-      font_string:SetText( string.gsub( item, original_text, truncated_text ) )
-    else
-      font_string:SetText( string.gsub( item, original_text, truncated_text .. "..." ) )
-    end
   end
 
   blue_hover( 0 )
@@ -116,6 +133,12 @@ function M.winner( parent )
   roll_type.inner:SetPoint( "LEFT", 5, 0 )
   roll_type:SetPoint( "RIGHT", 0, 0 )
   roll_type:SetHeight( 14 )
+  roll_type:EnableMouse()
+  roll_type:SetScript( "onMouseUp", function()
+    if arg1 == "RightButton" then
+      M.roll_type_dropdown()
+    end
+  end )
   frame.roll_type = roll_type.inner
 
   local winning_roll = m.GuiElements.create_text_in_container( "Frame", frame, 25, nil, "dummy" )
@@ -129,14 +152,16 @@ function M.winner( parent )
   local item_link = m.GuiElements.create_text_in_container( "Button", frame, 1, "LEFT", "dummy" )
   item_link.inner:SetFont( font_file, font_size )
   item_link.inner:SetJustifyH( "LEFT" )
+  item_link.inner:SetPoint( "LEFT", 0, 0 )
+  item_link.inner:SetPoint( "RIGHT", 0, 0 )
+  item_link.inner:SetHeight( 14 )
   item_link:SetPoint( "LEFT", player_name, "RIGHT", 1, 0 )
   item_link:SetPoint( "RIGHT", winning_roll, "LEFT", -1, 0 )
-  item_link:SetHeight( item_link.inner:GetHeight() )
+  item_link:SetHeight( 14 )
   frame.item_link = item_link
 
   frame.SetItem = function( _, item_link_text )
     item_link.inner:SetText( item_link_text )
-    truncate_item_text( item_link.inner, frame:GetParent():GetParent():GetParent():GetWidth() - 145 - winning_roll:GetWidth() )
 
     local tooltip_link = m.ItemUtils.get_tooltip_link( item_link_text )
 
@@ -244,61 +269,73 @@ function M.create_checkbox_entry( parent, text, setting, on_change )
 end
 
 function M.create_scroll_frame( parent, name )
-  local f = m.api.CreateFrame( "ScrollFrame", name, parent )
+  local f = m.api.CreateFrame( "ScrollFrame", name, parent, "FauxScrollFrameTemplate" )
 
-  f.slider = m.api.CreateFrame( "Slider", nil, f )
-  f.slider:SetOrientation( "VERTICAL" )
-  f.slider:SetPoint( "TOPLEFT", f, "TOPRIGHT", 1, 0 )
-  f.slider:SetPoint( "BOTTOMRIGHT", 9, 0 )
-  f.slider:SetThumbTexture( "Interface/Buttons/WHITE8x8" )
-  f.slider.thumb = f.slider:GetThumbTexture()
-  f.slider.thumb:SetHeight( 50 )
-  f.slider.thumb:SetTexture( .125, .624, .976, .5 )
+  if m.classic then
+    local scroll_bar = _G[ name .. "ScrollBar" ]
+    scroll_bar:SetPoint( "TOPLEFT", name, "TOPRIGHT", 1, -16 )
+  else
+    local scroll_bar = _G[ name .. "ScrollBar" ]
+    scroll_bar:SetWidth( 12 )
+    scroll_bar:SetBackdrop( {
+      bgFile = "Interface\\Buttons\\WHITE8X8",
+      edgeFile = "Interface\\Buttons\\WHITE8X8",
+      tile = false,
+      tileSize = 0,
+      edgeSize = 0.5,
+      insets = { left = 0, right = 0, top = 0, bottom = 0 }
+    } )
+    scroll_bar:SetBackdropColor( 0, 0, 0, 0.8 )
+    scroll_bar:SetBackdropBorderColor( .2, .2, .2, 1 )
+    scroll_bar:SetPoint( "TOPLEFT", name, "TOPRIGHT", 3, -13.5 )
+    scroll_bar:SetPoint( "BOTTOMLEFT", name, "BOTTOMRIGHT", 6, 14)
 
-  f.slider:SetScript( "OnValueChanged", function()
-    f:SetVerticalScroll( f.slider:GetValue() )
-    f.update_scroll_state()
-  end )
+    local thumb = _G[ name .. "ScrollBarThumbTexture" ]
+    thumb:SetTexture( "Interface\\Buttons\\WHITE8X8" )
+    thumb:SetVertexColor( .8, .8, .8, .8 )
+    thumb:SetWidth( 12 )
+    thumb:SetHeight( 10 )
 
-  f.update_scroll_state = function()
-    f.slider:SetMinMaxValues( 0, f:GetVerticalScrollRange() )
-    f.slider:SetValue( f:GetVerticalScroll() )
+    for i, button in { _G[ name .. "ScrollBarScrollUpButton" ], _G[ name .. "ScrollBarScrollDownButton" ] } do
 
-    local r = f:GetHeight() + f:GetVerticalScrollRange()
-    local v = f:GetHeight()
-    local ratio = v / r
+      for _, tex in { "Normal", "Highlight", "Pushed", "Disabled" } do
+        local texture = button[ "Get" .. tex .. "Texture" ]( button )
+        texture:SetTexture( "Interface\\AddOns\\RollFor\\assets\\arrow-" .. (i == 1 and "up" or "down") .. ".tga" )
+        texture:SetTexCoord( 0, 1, 0, 1 )
+        texture:SetVertexColor( .8, .8, .8, .8 )
+        texture:SetAlpha( .8 )
+        texture:SetPoint( "TOPLEFT", 2, -1 )
+        texture:SetPoint( "BOTTOMRIGHT", -2, 1 )
+      end
 
-    if ratio < 0.999999 then
-      local size = math.floor( v * ratio )
-      f.slider.thumb:SetHeight( size )
-      f.slider:Show()
-    else
-      f.slider:Hide()
+      button:SetWidth( 12 )
+      button:SetHeight( 12 )
+      button:SetBackdrop( {
+        bgFile = "Interface\\Buttons\\WHITE8X8",
+        edgeFile = "Interface\\Buttons\\WHITE8X8",
+        tile = false,
+        tileSize = 0,
+        edgeSize = 0.5,
+        insets = { left = 0, right = 0, top = 0, bottom = 0 }
+      } )
+      button:SetBackdropColor( 0, 0, 0, 1 )
+      button:SetBackdropBorderColor( .2, .2, .2, 1 )
+      button:GetDisabledTexture():SetAlpha( 0.4 )
+
+      if i == 1 then
+        button:SetPoint("BOTTOM", scroll_bar, "TOP", 0, 2 )
+      else
+        button:SetPoint("TOP", scroll_bar, "BOTTOM", 0, -2 )
+      end
+
+      button:SetScript( "OnEnter", function()
+        this:SetBackdropBorderColor( .125, .624, .976, .5 )
+      end )
+      button:SetScript( "OnLeave", function()
+        this:SetBackdropBorderColor( .2, .2, .2, 1 )
+      end )
     end
   end
-
-  f.scroll = function( self, step )
-    step = step or 0
-
-    local current = f:GetVerticalScroll()
-    local max = f:GetVerticalScrollRange()
-    local new = current - step
-
-    if new >= max then
-      f:SetVerticalScroll( max )
-    elseif new <= 0 then
-      f:SetVerticalScroll( 0 )
-    else
-      f:SetVerticalScroll( new )
-    end
-
-    f:update_scroll_state()
-  end
-
-  f:EnableMouseWheel( 1 )
-  f:SetScript( "OnMouseWheel", function()
-    f:scroll( arg1 * 10 )
-  end )
 
   return f
 end

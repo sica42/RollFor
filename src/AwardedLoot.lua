@@ -11,6 +11,7 @@ local getn = m.getn
 ---@field award fun( player_name: string, item_id: number, roll_data: RollData?, rolling_strategy: RollingStrategyType?, item_link: ItemLink?, player_class: PlayerClass?, sr_plus: number? )
 ---@field unaward fun( player_name: string, item_id: number )
 ---@field get_winners fun()
+---@field update_item fun( index: number, data: table )
 ---@field has_item_been_awarded fun( player_name: string, item_id: number ): boolean
 ---@field has_item_been_awarded_to_any_player fun( item_id: ItemId ): boolean
 ---@field clear fun( force: boolean?)
@@ -76,6 +77,17 @@ function M.new( db, group_roster, config )
     return db.awarded_items
   end
 
+  ---@param index number
+  ---@param data table
+  local function update_item( index, data )
+    local item = db.awarded_items[ index ]
+    if item and data then
+      for k, v in pairs( data ) do
+        item[ k ] = v
+      end
+    end
+  end
+
   ---@param player_name string
   ---@param item_id number
   ---@return boolean
@@ -101,6 +113,7 @@ function M.new( db, group_roster, config )
     M.debug.add( "clear" )
     if not config.keep_award_data() or force then
       m.clear_table( db.awarded_items )
+      db.awarded_items.n = 0
       notify_subscribers( 'award_data_updated' )
     end
   end
@@ -125,6 +138,7 @@ function M.new( db, group_roster, config )
     award = award,
     unaward = unaward,
     get_winners = get_winners,
+    update_item = update_item,
     has_item_been_awarded = has_item_been_awarded,
     has_item_been_awarded_to_any_player = has_item_been_awarded_to_any_player,
     clear = clear,

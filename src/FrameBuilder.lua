@@ -111,7 +111,6 @@ M.interface = {
 ---@field parent fun( self: FrameBuilder, parent: Frame ): FrameBuilder
 ---@field name fun( self: FrameBuilder, name: string ): FrameBuilder
 ---@field type fun( self: FrameBuilder, name: string ): FrameBuilder
----@field parent fun( self: FrameBuilder, parent: Frame ): FrameBuilder
 ---@field height fun( self: FrameBuilder, height: number ): FrameBuilder
 ---@field width fun( self: FrameBuilder, width: number ): FrameBuilder
 ---@field point fun( self: FrameBuilder, p: Point ): FrameBuilder
@@ -203,7 +202,7 @@ function M.new()
           edgeFile = "Interface\\Buttons\\WHITE8X8",
           tile = false,
           tileSize = 0,
-          edgeSize = 0.8,
+          edgeSize = options.border_size or 0.8,
           insets = { left = 0, right = 0, top = 0, bottom = 0 }
         } )
       elseif options.frame_style == "Classic" then
@@ -214,6 +213,15 @@ function M.new()
           tileSize = 22,
           edgeSize = options.border_size or 24,
           insets = { left = 5, right = 5, top = 5, bottom = 5 }
+        } )
+      elseif options.frame_style == "None" then
+        frame:SetBackdrop( {
+          bgFile = options.bg_file or "Interface/Buttons/WHITE8x8",
+          edgeFile = options.edge_file,
+          tile = true,
+          tileSize = 22,
+          edgeSize = options.border_size or 0,
+          insets = { left = 0, right = 0, top = 0, bottom = 0 }
         } )
       end
 

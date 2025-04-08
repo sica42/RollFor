@@ -16,6 +16,8 @@ local filter = m.filter
 local M = m.Module.new( "WinnersPopup" )
 --M.debug.enable()
 
+ROW_HEIGHT = 14
+
 M.center_point = { point = "CENTER", relative_point = "CENTER", x = 0, y = 150 }
 
 ---@param popup_builder PopupBuilder
@@ -32,25 +34,16 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
   local headers
   local sort
   local sort_order = "asc"
+  local content_frame
   local scroll_frame
+  local offset = 0
+  local row_count = 0
+  local row_frames = {}
   local is_resizing
   local award_filters = config.award_filter()
   local winners_data
 
   db.point = db.point or M.center_point
-  --[[
-  awarded_loot.award( "Zombiehunter", 16939, { roll_type = "SoftRes", roll = 112, player_name = "", player_class = "" }, "SoftResRoll", nil, "Hunter", 30 )
-  awarded_loot.award( "Kevieboipro", 16939, { roll_type = "SoftRes", roll = 98, player_name = "", player_class = "" }, "SoftResRoll", nil, "Warrior", 20 )
-  awarded_loot.award( "Kevieboipro", 19019, { roll_type = "Transmog", roll = 89, player_name = "", player_class = "" }, "NormalRoll", nil, "Warrior" )
-  awarded_loot.award( "Dayknight", 5504, { roll_type = "MainSpec", roll = 53, player_name = "", player_class = "" }, "NormalRoll", nil, "Paladin" )
-  awarded_loot.award( "Celilae", 5504, { roll_type = "MainSpec", roll = 78, player_name = "", player_class = "" }, "NormalRoll", nil, "Paladin" )
-  awarded_loot.award( "Borazor", 16939, { roll_type = "SoftRes", roll = 112, player_name = "", player_class = "" }, "SoftResRoll", nil, "Hunter", 30 )
-  awarded_loot.award( "Ryiana", 16939, { roll_type = "SoftRes", roll = 98, player_name = "", player_class = "" }, "SoftResRoll", nil, "Warrior", 20 )
-  awarded_loot.award( "Tornapart", 19019, { roll_type = "Transmog", roll = 89, player_name = "", player_class = "" }, "NormalRoll", nil, "Warrior" )
-  awarded_loot.award( "Dayknight", 5504, { roll_type = "MainSpec", roll = 53, player_name = "", player_class = "" }, "NormalRoll", nil, "Paladin" )
-  awarded_loot.award( "Celilae", 5504, { roll_type = "MainSpec", roll = 78, player_name = "", player_class = "" }, "NormalRoll", nil, "Paladin" )
-  awarded_loot.award( "Borazor", 16936, { roll_type = "SoftRes", roll = 112, player_name = "", player_class = "" }, "SoftResRoll", nil, "Hunter", 30 )
-  ]]
 
   local function create_popup()
     M.debug.add( "create popup" )
@@ -66,6 +59,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     end
 
     local old_width
+    local old_height
     local function on_resize( self )
       if not self or not is_resizing then return end
       local min_width, max_width, min_height, max_height = 225, 500, 173, 600
@@ -81,11 +75,13 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
       end
 
       if not old_width then old_width = self:GetWidth() end
-      if (math.abs( (width) - old_width ) > 7) or (width <= min_width) then
+      if not old_height then old_height = self:GetHeight() end
+      if (math.abs( width - old_width ) > 7) or (width <= min_width) or (math.abs( height - old_height ) > (ROW_HEIGHT / 2)) then
         old_width = self:GetWidth()
-        refresh()
+        old_height = self:GetHeight()
+        refresh( offset, false )
       end
-      scroll_frame:update_scroll_state()
+      --scroll_frame:update_scroll_state()
     end
 
     local function get_point()
@@ -127,13 +123,13 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
       else
         sort = self.sort
       end
-      refresh( true )
+      refresh( offset )
     end
 
     local function cb_on_change( cb_filter, cb_setting, value )
       if cb_filter and cb_setting then
         award_filters[ cb_filter ][ cb_setting ] = value
-        refresh( true )
+        refresh( offset )
       end
     end
 
@@ -143,7 +139,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     btn_reset:SetPoint( "TOPRIGHT", m.classic and -29 or -23, m.classic and -5 or -5 )
     btn_reset:SetScript( "OnClick", function()
       sort = nil
-      refresh( true )
+      refresh( offset )
     end )
 
     local btn_clear = m.GuiElements.tiny_button( popup, "C", "Clear data", "#209FF9" )
@@ -157,6 +153,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
       confirm_popup.show( { "This will clear the current winners data.", "Are you sure?" }, function( value )
         if value then
           awarded_loot.clear( true )
+          refresh()
         end
       end )
     end )
@@ -174,10 +171,11 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     btn_resize:SetPoint( "BOTTOMRIGHT", m.classic and -4 or 0, m.classic and 4 or 0 )
 
     local padding_top = m.classic and -20 or -10
+    local padding_side = m.classic and 30 or 20
 
     headers = m.WinnersPopupGui.headers( popup, set_sort )
-    headers:SetPoint( "TOPLEFT", 20, padding_top - 20 )
-    headers:SetPoint( "RIGHT", -20, 0 )
+    headers:SetPoint( "TOPLEFT", padding_side, padding_top - 20 )
+    headers:SetPoint( "RIGHT", -padding_side, 0 )
 
     m.WinnersPopupGui.create_dropdown( headers.item_id_header, award_filters, function( self )
       m.WinnersPopupGui.create_checkbox_entry( self, "Poor", "item_quality.Poor", cb_on_change )
@@ -201,24 +199,30 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
       m.WinnersPopupGui.create_checkbox_entry( self, "Other", "roll_type.NA", cb_on_change )
     end )
 
-    scroll_frame = m.WinnersPopupGui.create_scroll_frame( popup )
-    scroll_frame:SetPoint( "TOPLEFT", 20, padding_top - 35 )
-    scroll_frame:SetPoint( "BOTTOMRIGHT", -20, m.classic and 20 or 15 )
+    scroll_frame = m.WinnersPopupGui.create_scroll_frame( popup, "RollForWinnersScrollFrame" )
+    scroll_frame.name = scroll_frame:GetName()
+    scroll_frame:SetPoint( "TOPLEFT", padding_side, padding_top - 35 )
+    scroll_frame:SetPoint( "BOTTOMRIGHT", -padding_side, m.classic and 20 or 15 )
+    scroll_frame:SetScript( "OnVerticalScroll", function()
+      m.api.FauxScrollFrame_OnVerticalScroll( ROW_HEIGHT, function()
+        refresh( m.api.FauxScrollFrame_GetOffset( scroll_frame ), false )
+      end )
+    end )
 
-    local inner_builder = frame_builder.new()
-        :parent( scroll_frame )
-        :name( "RollForWinnersFrameInner" )
+    content_frame = frame_builder.new()
+        :parent( popup )
+        :name( "RollForWinnersFrameContent" )
         :width( 250 )
         :height( 100 )
-        :point( { point = "TOPLEFT", relative_point = "TOPLEFT", relative_frame = "RollForWinnersFrame", x = 0, y = 0 } )
+        :point( { point = "TOPLEFT", relative_point = "TOPLEFT", relative_frame = "RollForWinnersFrame", x = padding_side, y = padding_top - 35 } )
         :bg_file( "Interface/Buttons/WHITE8x8" )
         :gui_elements( m.WinnersPopupGui )
-        :frame_style( "None" )
+        :border_size( .5 )
+        :border_color( .2, .2, .2, 1)
+        :frame_style( "Modern" )
+        :build()
 
-    scroll_frame.content = inner_builder:build()
-    scroll_frame:SetScrollChild( scroll_frame.content )
-    scroll_frame.content:SetAllPoints( scroll_frame )
-    scroll_frame.content:Show()
+    content_frame:SetPoint( "BOTTOMRIGHT", popup, "BOTTOMRIGHT", -padding_side, m.classic and 20 or 15 )
 
     return popup
   end
@@ -285,9 +289,10 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     M.debug.add( "Get data" )
     local db_data = awarded_loot.get_winners()
     winners_data = {}
-    for _, v in ipairs( db_data ) do
+    for index, v in ipairs( db_data ) do
       if v.item_link then
         table.insert( winners_data, {
+          index = index,
           player_name = v.player_name,
           player_class = v.player_class,
           item_id = v.item_id,
@@ -302,16 +307,12 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
       end
     end
 
-    if getn( winners_data ) == 0 then
-      scroll_frame:UpdateScrollChildRect()
-      return
-    end
-
     filter_winners()
     if (sort) then table.sort( winners_data, sort_winners ) end
   end
 
-  function refresh( refresh_data )
+  function refresh( new_offset, refresh_data )
+    refresh_data = refresh_data == nil and true
     if not popup then
       popup = create_popup()
       make_content()
@@ -319,61 +320,117 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
 
     if not winners_data or refresh_data then get_data() end
 
+    local winners_count = getn( winners_data )
+    local old_row_count = row_count
+    row_count = math.floor( ((popup:GetHeight() - (m.classic and 80 or 60)) / ROW_HEIGHT) + 0.4 )
+    m.api.FauxScrollFrame_Update( scroll_frame, winners_count, row_count, ROW_HEIGHT )
+
+    if new_offset and new_offset == -1 then
+      offset = winners_count - row_count
+      if offset < 0 then offset = 0 end
+    elseif new_offset then
+      offset = new_offset
+    end
+
     local show_sr_plus = award_filters[ "winning_roll" ][ "show_sr_plus" ]
     local got_sr_plus = false
     local content = {}
-    for _, item in pairs( winners_data ) do
-      table.insert( content, {
-        type = "winner",
-        player_name = item.player_name,
-        player_class = item.player_class,
-        item_link = item.item_link,
-        roll_type = item.roll_type,
-        rolling_strategy = item.rolling_strategy,
-        winning_roll = item.winning_roll,
-        sr_plus = item.sr_plus,
-        quality = item.quality
-      } )
+
+    for i, item in pairs( winners_data ) do
+      if i > offset and i <= row_count + offset then
+        table.insert( content, {
+          type = "winner",
+          index = item.index,
+          item_id = item.item_id,
+          player_name = item.player_name,
+          player_class = item.player_class,
+          item_link = item.item_link,
+          roll_type = item.roll_type,
+          rolling_strategy = item.rolling_strategy,
+          winning_roll = item.winning_roll,
+          sr_plus = item.sr_plus,
+          quality = item.quality
+        } )
+      end
       if item.sr_plus then got_sr_plus = true end
+    end
+
+    local function update_row( frame, v )
+      local roll_type_abbrev = v.roll_type == "RR" and "RR" or v.roll_type == "NA" and "NA" or m.roll_type_abbrev( v.roll_type )
+      local sr_plus = ""
+
+      if not frame then
+        error( "Row frame is empty!" )
+        return
+      end
+
+      if show_sr_plus and got_sr_plus then
+        frame.winning_roll:GetParent():SetWidth( 50 )
+        if v.sr_plus and v.rolling_strategy == m.Types.RollingStrategy.SoftResRoll and v.roll_type == m.Types.RollType.SoftRes then
+          sr_plus = string.format( "+%s ", v.sr_plus )
+        end
+      else
+        frame.winning_roll:GetParent():SetWidth( 25 )
+      end
+
+      frame:SetItem( v.item_link )
+      frame.player_name:SetText( c( v.player_name, v.player_class ) )
+      frame.winning_roll:SetText( string.format( "%s%s", sr_plus, v.winning_roll or "-" ) )
+      frame.roll_type:SetText( r( v.roll_type, roll_type_abbrev ) )
+      frame.roll_type.value = v.roll_type
+      frame.roll_type.on_update_item = function( rt )
+        awarded_loot.update_item( v.index, { roll_type = rt } )
+        refresh()
+      end
+      frame:Show()
     end
 
     headers.winning_roll_header:SetWidth( (show_sr_plus and got_sr_plus) and 50 or 25 )
 
-    scroll_frame.content:clear()
-    for _, v in ipairs( content ) do
-      scroll_frame.content.add_line( v.type, function( type, frame, lines )
-        if type == "winner" then
-          local roll_type_abbrev = v.roll_type == "RR" and "RR" or v.roll_type == "NA" and "NA" or m.roll_type_abbrev( v.roll_type )
-          local sr_plus = ""
-
-          if show_sr_plus and got_sr_plus then
-            frame.winning_roll:GetParent():SetWidth( 50 )
-            if v.sr_plus and v.rolling_strategy == m.Types.RollingStrategy.SoftResRoll and v.roll_type == m.Types.RollType.SoftRes then
-              sr_plus = string.format( "+%s ", v.sr_plus )
-            end
-          else
-            frame.winning_roll:GetParent():SetWidth( 25 )
-          end
-
-          frame:SetItem( v.item_link )
-          frame.player_name:SetText( c( v.player_name, v.player_class ) )
-          frame.winning_roll:SetText( string.format( "%s%s", sr_plus, v.winning_roll or "-" ) )
-          frame.roll_type:SetText( r( v.roll_type, roll_type_abbrev ) )
-
-          frame:SetPoint( "TOP", scroll_frame.content, "TOP", 0, -getn( lines ) * 14 )
-        end
-      end, 0 )
+    if row_count < old_row_count then
+      for i = row_count + 1, old_row_count do
+        row_frames[ i ].is_used = false
+        row_frames[ i ]:Hide()
+      end
     end
 
-    scroll_frame:UpdateScrollChildRect()
-    local tick = 0
-    scroll_frame:SetScript( "OnUpdate", function()
-      scroll_frame:update_scroll_state()
-      tick = tick + 1
-      if tick > 1 then
-        scroll_frame:SetScript( "OnUpdate", nil )
+    if row_count > old_row_count then
+      for i = old_row_count, row_count - 1 do
+        if row_frames[ i + 1 ] then
+          row_frames[ i + 1 ].is_used = true
+        else
+          content_frame.add_line( "winner", function( type, frame, lines )
+            frame:SetPoint( "TOP", content_frame, "TOP", 0, -i * ROW_HEIGHT )
+            frame:Hide()
+            table.insert( row_frames, frame )
+          end, 0 )
+        end
+        if offset > 0 then offset = offset - 1 end
       end
-    end )
+    end
+
+    for i = 1, row_count do
+      row_frames[ i ]:Hide()
+    end
+
+    for index, v in ipairs( content ) do
+      update_row( row_frames[ index ], v )
+    end
+
+    m.api.FauxScrollFrame_SetOffset( scroll_frame, offset )
+    _G[ scroll_frame.name .. "ScrollBar" ]:SetValue( offset * ROW_HEIGHT )
+
+    if offset == 0 then
+      _G[ scroll_frame.name .. "ScrollBarScrollUpButton" ]:Disable()
+    else
+      _G[ scroll_frame.name .. "ScrollBarScrollUpButton" ]:Enable()
+    end
+
+    if offset + math.min( row_count, winners_count ) == winners_count then
+      _G[ scroll_frame.name .. "ScrollBarScrollDownButton" ]:Disable()
+    else
+      _G[ scroll_frame.name .. "ScrollBarScrollDownButton" ]:Enable()
+    end
   end
 
   local function show()
@@ -383,7 +440,8 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
       make_content()
     end
     popup:Show()
-    refresh( true )
+    offset = 0
+    refresh( offset )
   end
 
   local function hide()
@@ -403,20 +461,12 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
   end
 
   local function loot_awarded()
-    M.debug.add( "loot_awarded" )
+    M.debug.add( "winners loot_awarded" )
     if popup and popup:IsVisible() then
-      refresh( true )
-      if not sort then
-        local max = scroll_frame:GetVerticalScrollRange()
-        local tick = 0
-        scroll_frame:SetScript( "OnUpdate", function()
-          local new_max = scroll_frame:GetVerticalScrollRange()
-          tick = tick + 1
-          if new_max > max or tick > 5 then
-            scroll_frame:SetVerticalScroll( new_max )
-            scroll_frame:SetScript( "OnUpdate", nil )
-          end
-        end )
+      if sort then
+        refresh( 0 )
+      else
+        refresh( -1 )
       end
     end
   end
@@ -424,7 +474,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
   local function award_data_updated()
     M.debug.add( "award_data_updated" )
     if popup and popup:IsVisible() then
-      refresh( true )
+      refresh( 0 )
     end
   end
 
