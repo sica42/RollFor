@@ -4,12 +4,14 @@ A World of Warcraft (1.12.1 and 2.5.2) addon that manages rolling for items.
 ## New in this fork
 This version includes the following new features:
 * New option `/rf config auto-class-announce` Toggle replace normal roll message with classes for items that has class restrictions.
-* New option `/rf config auto-tmog-disable` Toggle automatically disable tmog roll option on trash loot.
+* New option `/rf config auto-tmog` Toggle automatically disable tmog roll option on trash loot.
 * New option `/rf config loot-frame-cursor` Toggle loot frame being positioned at cursor location.
 * New popup to keep track of winners. Shift-click map icon or type `/rfw` to access.
    * Right click headers to customize filters
    * Click headers to sort the list
+   * Right click roll type to change it.
 * Tracks raid trades
+* New options GUI. Ctrl-click map icon or type `/rfo` to access.
 * Show roll popup for all group/raid members who have the addon installed when loot master starts a roll.
    * Enable with `/rf config client show-roll Eligible` or `Always`
    * `/rf config client` to view additional client options
