@@ -22,7 +22,7 @@ This version includes the following new features:
 
 **Classic Look**
 
-<img src="docs/classic-look.png?v=2">
+<img src="https://github.com/sica42/roll-for-vanilla/blob/master/docs/classic-look.png?v=2)">
 
 Enable: `/rf config classic-look`
 
@@ -35,7 +35,7 @@ In this example, the addon shows the soft-ressed items in the loot list.
 The Master Looter raid-rolls the trash item, then rolls non-SR items.  
 Then the SR items are rolled.
 
-<img src="docs/bindings.gif?v=2" alt="overview" style="width:1350px;height:350">
+<img src="https://github.com/sica42/roll-for-vanilla/blob/master/docs/bindings.gif?v=2" alt="overview" style="width:1350px;height:350">
 
 View better quality (fullscreen): https://youtu.be/f5nY-CxreIM
 
@@ -46,7 +46,7 @@ In this example, the addon automatically detects that the item is soft-reserved 
 It restricts rolling for the item to these players only and resolves any tie automatically.  
 The Master Looter then assigns the item directly to the winner.
 
-<img src="docs/gui-sr-tie.gif" alt="soft-res rolling" style="width:1024;height:380">
+<img src="https://github.com/sica42/roll-for-vanilla/blob/master/docs/gui-sr-tie.gif" alt="soft-res rolling" style="width:1024;height:380">
 
 
 ### Two top rolls win
@@ -55,13 +55,13 @@ In this example, two identical items drop. When clicked on any of these, the add
 both and performs a "two-top-rolls-win" roll.  Then the Master Looter is presented with  
 individual award buttons for each winner.
 
-<img src="docs/two-items.gif" alt="two top rolls win" style="width:1100px;height:306">
+<img src="https://github.com/sica42/roll-for-vanilla/blob/master/docs/two-items.gif" alt="two top rolls win" style="width:1100px;height:306">
 
 
 ## Features
 
 ### Fully SR-integrated loot list
-<img src="docs/loot-list.gif" alt="SR-integrated loot list" style="width:720px;height:350">
+<img src="https://github.com/sica42/roll-for-vanilla/blob/master/docs/loot-list.gif" alt="SR-integrated loot list" style="width:720px;height:350">
 
 ---
 
@@ -74,7 +74,7 @@ Disable this feature with:
 ---
 
 ### Shows the loot that dropped (and who soft reserved)
-<img src="docs/dropped-loot.gif" alt="Shows dropped loot" style="width:720px;height:350">
+<img src="https://github.com/sica42/roll-for-vanilla/blob/master/docs/dropped-loot.gif" alt="Shows dropped loot" style="width:720px;height:350">
 
 ---
 
@@ -82,7 +82,7 @@ Disable this feature with:
 * one window with players sorted by class
 * adds confirmation window
 
-<img src="docs/master-loot-window.gif" alt="Pretty Master Loot window" style="width:720px;height:350">
+<img src="https://github.com/sica42/roll-for-vanilla/blob/master/docs/master-loot-window.gif" alt="Pretty Master Loot window" style="width:720px;height:350">
 
 ---
 
@@ -91,7 +91,7 @@ Disable this feature with:
  * If multiple players roll the same number, it automatically shows it and
    waits for these players to re-roll.
 
-<img src="docs/tie-winners.gif" alt="Tie winners" style="width:720px;height:350">
+<img src="https://github.com/sica42/roll-for-vanilla/blob/master/docs/tie-winners.gif" alt="Tie winners" style="width:720px;height:350">
 
 ---
 
@@ -111,7 +111,7 @@ Disable this feature with:
  * Automatically resolves tied rolls.
  * Highly customizable - see `/rf config` and `/rf config help`.
 
-<img src="docs/raid-roll.gif" alt="Raid roll" style="width:720px;height:350">
+<img src="https://github.com/sica42/roll-for-vanilla/blob/master/docs/raid-roll.gif" alt="Raid roll" style="width:720px;height:350">
 
 ---
 
@@ -164,17 +164,17 @@ instead of `/rf`. "arf" stands for "All Roll For".
 2. Ask raiders to add their items.
 3. When ready, lock the raid and click on **RollFor export** (raidres.fly.dev) or **Gargul Export** (softes.it) button.
 
-<img src="docs/raidres-export.jpg" alt="Raidres export" style="width:720px;height:350">
+<img src="https://github.com/sica42/roll-for-vanilla/blob/master/docs/raidres-export.jpg" alt="Raidres export" style="width:720px;height:350">
 
 4. Click on **Copy RollFor data to clipboard** buton.
 
-<img src="docs/raidres-copy-to-clipboard.jpg" alt="Raidres copy to clipboard" style="width:720px;height:350">
+<img src="https://github.com/sica42/roll-for-vanilla/blob/master/docs/raidres-copy-to-clipboard.jpg" alt="Raidres copy to clipboard" style="width:720px;height:350">
 
 5. Click on the minimap icon or type `/sr`.  
 6. Paste the data into the window.  
 7. Click **Import!**.  
 
-<img src="docs/softres-import.jpg" alt="softres-import" style="width:720px;height:350">
+<img src="https://github.com/sica42/roll-for-vanilla/blob/master/docs/softres-import.jpg" alt="softres-import" style="width:720px;height:350">
 
 The addon will tell you the status of SR import.  
 Hovering over the minimap icon will tell you who did not soft-res.  
