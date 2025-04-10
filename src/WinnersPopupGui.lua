@@ -8,7 +8,7 @@ if m.WinnersPopupGui then return end
 ---@class WinnersPopupGui
 ---@field headers fun( parent: Frame, on_click: function ): Frame
 ---@field winner fun( parent: Frame): Frame
----@field create_dropdown fun( parent: Frame, award_filters: table, populate: function ): Frame
+---@field create_dropdown fun( parent: Frame, data: table?, populate: function, no_set_show: boolean? ): Frame
 ---@field create_checkbox_entry fun( parent: Frame, text: string, setting: string, on_change: function ): Frame
 ---@field create_scroll_frame fun( parent: Frame, name: string ): Frame
 
@@ -62,35 +62,25 @@ end
 
 function M.roll_type_dropdown()
   if not M.roll_type_dropdown_frame then
-    M.roll_type_dropdown_frame = m.api.CreateFrame( "Frame", "RollForRollTypeDropdown" )
-    M.roll_type_dropdown_frame.displayMode = "MENU"
+    M.roll_type_dropdown_frame = M.create_dropdown( this:GetParent():GetParent(), nil, function( self )
+      for roll_type in pairs( m.Types.RollType ) do
+        M.create_checkbox_entry( self, m.roll_type_color( roll_type, m.roll_type_abbrev( roll_type ) ), roll_type )
+      end
+    end, true )
   end
-
-  if M.roll_type_dropdown_frame.initialize ~= M.roll_type_dropdown_menu then
-    m.api.CloseDropDownMenus()
-    M.roll_type_dropdown_frame.initialize = M.roll_type_dropdown_menu
-  end
-
-  M.roll_type_dropdown_frame.value = this.inner.value
-  M.roll_type_dropdown_frame.on_update_item = this.inner.on_update_item
 
   local row = this:GetParent()
-  m.api.ToggleDropDownMenu( 1, nil, M.roll_type_dropdown_frame, row:GetName(), row:GetWidth() - 57, 0 )
-end
+  M.roll_type_dropdown_frame:SetPoint( "TOPLEFT", row, "BOTTOMLEFT", row:GetWidth() - 27, 0 )
+  M.roll_type_dropdown_frame:Show()
 
-function M.roll_type_dropdown_menu()
-  local info = {}
-
-  for roll_type in pairs( m.Types.RollType ) do
-    info.text = m.roll_type_color( roll_type, m.roll_type_abbrev( roll_type ) )
-    info.checked = M.roll_type_dropdown_frame.value == roll_type
-    info.arg1 = roll_type
-    info.func = function( rt )
-      if M.roll_type_dropdown_frame.on_update_item then
-        M.roll_type_dropdown_frame.on_update_item( rt )
-      end
+  local on_update_item = this.inner.on_update_item
+  for _, cb in ipairs( M.roll_type_dropdown_frame.checkboxes ) do
+    cb.checkbox:SetChecked( cb.setting == this.inner.value )
+    cb.checkbox.on_change = function( setting, value )
+      if not value then setting = "NA" end
+      on_update_item( setting )
+      M.roll_type_dropdown_frame:Hide()
     end
-    m.api.UIDropDownMenu_AddButton( info, 1 )
   end
 end
 
@@ -136,7 +126,11 @@ function M.winner( parent )
   roll_type:EnableMouse()
   roll_type:SetScript( "onMouseUp", function()
     if arg1 == "RightButton" then
-      M.roll_type_dropdown()
+      if M.roll_type_dropdown_frame and M.roll_type_dropdown_frame:IsVisible() then
+        M.roll_type_dropdown_frame:Hide()
+      else
+        M.roll_type_dropdown()
+      end
     end
   end )
   frame.roll_type = roll_type.inner
@@ -189,8 +183,8 @@ function M.winner( parent )
   return frame
 end
 
-function M.create_dropdown( parent, award_filters, populate )
-  if not parent:GetParent().dropdowns then parent:GetParent().dropdowns = {} end
+function M.create_dropdown( parent, data, populate, no_set_show )
+  if not M.dropdowns then M.dropdowns = {} end
 
   local dropdown = m.api.CreateFrame( "Frame", nil, parent )
   dropdown:SetFrameStrata( "TOOLTIP" )
@@ -207,7 +201,8 @@ function M.create_dropdown( parent, award_filters, populate )
   dropdown:SetBackdropBorderColor( .2, .2, .2, 1 )
   dropdown:EnableMouse( true )
   dropdown:Hide()
-  table.insert( parent:GetParent().dropdowns, dropdown )
+  dropdown.data = data
+  table.insert( M.dropdowns, dropdown )
 
   dropdown:SetScript( "OnLeave", function()
     if m.api.MouseIsOver( dropdown ) then
@@ -216,26 +211,35 @@ function M.create_dropdown( parent, award_filters, populate )
     dropdown:Hide()
   end )
 
-  parent:SetScript( "OnMouseDown", function()
-    if arg1 == "RightButton" then
-      local visible = dropdown:IsVisible()
-      for v in ipairs( parent:GetParent().dropdowns ) do
-        parent:GetParent().dropdowns[ v ]:Hide()
+  if not no_set_show then
+    parent:SetScript( "OnMouseDown", function()
+      if arg1 == "RightButton" then
+        if dropdown:IsVisible() then
+          dropdown:Hide()
+        else
+          dropdown:Show()
+        end
       end
-      if not visible then dropdown:Show() end
-    end
-  end )
+    end )
+  end
 
   if populate then
     dropdown:SetScript( "OnShow", function()
+      for v in ipairs( M.dropdowns ) do
+        if M.dropdowns[ v ] ~= dropdown then
+          M.dropdowns[ v ]:Hide()
+        end
+      end
+
       local self = dropdown
       if not self.setup then
         self.setup = true
         populate( self )
       end
+
       for _, v in ipairs( self.checkboxes ) do
-        if v.filter and v.setting then
-          v.checkbox:SetChecked( award_filters[ v.filter ][ v.setting ] )
+        if v.setting and data and type( data ) == "table" then
+          v.checkbox:SetChecked( data[ v.setting ] )
         end
       end
     end )
@@ -246,17 +250,17 @@ end
 
 function M.create_checkbox_entry( parent, text, setting, on_change )
   if not parent.checkboxes then parent.checkboxes = {} end
-  local p = string.find( setting, ".", 1, true ) or 0
-  local cb_filter = string.sub( setting, 1, p - 1 )
-  local cb_setting = string.sub( setting, p + 1 )
 
   local cb = m.GuiElements.checkbox( parent, text, function( value )
-    if on_change then on_change( cb_filter, cb_setting, value ) end
+    if parent.data and type( parent.data ) == "table" then
+      parent.data[ setting ] = value
+    end
+    if this.on_change then this.on_change( setting, value ) end
+    if on_change then on_change( setting, value ) end
   end )
 
   cb:SetPoint( "TOP", 0, -((getn( parent.checkboxes )) * 17) - 7 )
-  cb.filter = cb_filter
-  cb.setting = cb_setting
+  cb.setting = setting
 
   if cb:GetWidth() > parent:GetWidth() - 15 then
     parent:SetWidth( cb:GetWidth() + 15 )
@@ -288,7 +292,7 @@ function M.create_scroll_frame( parent, name )
     scroll_bar:SetBackdropColor( 0, 0, 0, 0.8 )
     scroll_bar:SetBackdropBorderColor( .2, .2, .2, 1 )
     scroll_bar:SetPoint( "TOPLEFT", name, "TOPRIGHT", 3, -13.5 )
-    scroll_bar:SetPoint( "BOTTOMLEFT", name, "BOTTOMRIGHT", 6, 14)
+    scroll_bar:SetPoint( "BOTTOMLEFT", name, "BOTTOMRIGHT", 6, 14 )
 
     local thumb = _G[ name .. "ScrollBarThumbTexture" ]
     thumb:SetTexture( "Interface\\Buttons\\WHITE8X8" )
@@ -297,7 +301,6 @@ function M.create_scroll_frame( parent, name )
     thumb:SetHeight( 10 )
 
     for i, button in { _G[ name .. "ScrollBarScrollUpButton" ], _G[ name .. "ScrollBarScrollDownButton" ] } do
-
       for _, tex in { "Normal", "Highlight", "Pushed", "Disabled" } do
         local texture = button[ "Get" .. tex .. "Texture" ]( button )
         texture:SetTexture( "Interface\\AddOns\\RollFor\\assets\\arrow-" .. (i == 1 and "up" or "down") .. ".tga" )
@@ -323,9 +326,9 @@ function M.create_scroll_frame( parent, name )
       button:GetDisabledTexture():SetAlpha( 0.4 )
 
       if i == 1 then
-        button:SetPoint("BOTTOM", scroll_bar, "TOP", 0, 2 )
+        button:SetPoint( "BOTTOM", scroll_bar, "TOP", 0, 2 )
       else
-        button:SetPoint("TOP", scroll_bar, "BOTTOM", 0, -2 )
+        button:SetPoint( "TOP", scroll_bar, "BOTTOM", 0, -2 )
       end
 
       button:SetScript( "OnEnter", function()

@@ -428,7 +428,21 @@ end
 function M.checkbox( parent, text, on_change )
   local frame = m.api.CreateFrame( "Frame", nil, parent )
   frame:SetPoint( "LEFT", 5, 0 )
+  frame:SetPoint( "RIGHT", -5, 0 )
   frame:SetHeight( 14 )
+  frame:SetBackdrop( {
+    bgFile = "Interface/Buttons/WHITE8x8",
+  } )
+
+  local function blue_hover( a )
+    frame:SetBackdropColor( 0.125, 0.624, 0.976, a )
+  end
+
+  blue_hover( 0 )
+  frame:EnableMouse()
+  frame:SetScript( "OnEnter", function() blue_hover( .2 ) end )
+  frame:SetScript( "OnLeave", function() blue_hover( 0 ) end )
+
 
   local cb = m.api.CreateFrame( "CheckButton", nil, frame, "UICheckButtonTemplate" )
   cb:SetWidth( 14 )
@@ -445,6 +459,8 @@ function M.checkbox( parent, text, on_change )
   } )
   cb:SetBackdropColor( 0, 0, 0, 1 )
   cb:SetBackdropBorderColor( .2, .2, .2, 1 )
+  cb:SetScript( "OnEnter", function() blue_hover( .2 ) end )
+  cb:SetScript( "OnLeave", function() blue_hover( 0 ) end )
   cb:SetScript( "OnClick", function()
     if on_change then on_change( cb:GetChecked() ) end
   end )
@@ -454,6 +470,8 @@ function M.checkbox( parent, text, on_change )
   label.inner:SetJustifyH( "LEFT" )
   label:SetWidth( label.inner:GetWidth() )
   label:SetPoint( "LEFT", cb, "RIGHT", 5, 0 )
+  label:SetScript( "OnEnter", function() blue_hover( .2 ) end )
+  label:SetScript( "OnLeave", function() blue_hover( 0 ) end )
   label:SetScript( "OnClick", function()
     cb:SetChecked( not cb:GetChecked() )
     if on_change then on_change( cb:GetChecked() ) end

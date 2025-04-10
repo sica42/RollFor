@@ -123,14 +123,11 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
       else
         sort = self.sort
       end
-      refresh( offset )
+      refresh()
     end
 
-    local function cb_on_change( cb_filter, cb_setting, value )
-      if cb_filter and cb_setting then
-        award_filters[ cb_filter ][ cb_setting ] = value
-        refresh( offset )
-      end
+    local function cb_on_change()
+      refresh()
     end
 
     m.GuiElements.titlebar( popup, "Winners" )
@@ -139,7 +136,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     btn_reset:SetPoint( "TOPRIGHT", m.classic and -29 or -25, m.classic and -5 or -7 )
     btn_reset:SetScript( "OnClick", function()
       sort = nil
-      refresh( offset )
+      refresh()
     end )
 
     local btn_clear = m.GuiElements.tiny_button( popup, "C", "Clear data", "#209FF9" )
@@ -177,26 +174,26 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     headers:SetPoint( "TOPLEFT", padding_side, padding_top - 20 )
     headers:SetPoint( "RIGHT", -padding_side, 0 )
 
-    m.WinnersPopupGui.create_dropdown( headers.item_id_header, award_filters, function( self )
-      m.WinnersPopupGui.create_checkbox_entry( self, "Poor", "item_quality.Poor", cb_on_change )
-      m.WinnersPopupGui.create_checkbox_entry( self, "Common", "item_quality.Common", cb_on_change )
-      m.WinnersPopupGui.create_checkbox_entry( self, "Uncommon", "item_quality.Uncommon", cb_on_change )
-      m.WinnersPopupGui.create_checkbox_entry( self, "Rare", "item_quality.Rare", cb_on_change )
-      m.WinnersPopupGui.create_checkbox_entry( self, "Epic", "item_quality.Epic", cb_on_change )
-      m.WinnersPopupGui.create_checkbox_entry( self, "Legendary", "item_quality.Legendary", cb_on_change )
+    m.WinnersPopupGui.create_dropdown( headers.item_id_header, award_filters.item_quality, function( self )
+      m.WinnersPopupGui.create_checkbox_entry( self, "Poor", "Poor", cb_on_change )
+      m.WinnersPopupGui.create_checkbox_entry( self, "Common", "Common", cb_on_change )
+      m.WinnersPopupGui.create_checkbox_entry( self, "Uncommon", "Uncommon", cb_on_change )
+      m.WinnersPopupGui.create_checkbox_entry( self, "Rare", "Rare", cb_on_change )
+      m.WinnersPopupGui.create_checkbox_entry( self, "Epic", "Epic", cb_on_change )
+      m.WinnersPopupGui.create_checkbox_entry( self, "Legendary", "Legendary", cb_on_change )
     end )
 
-    m.WinnersPopupGui.create_dropdown( headers.winning_roll_header, award_filters, function( self )
-      m.WinnersPopupGui.create_checkbox_entry( self, "Show SR+", "winning_roll.show_sr_plus", cb_on_change )
+    m.WinnersPopupGui.create_dropdown( headers.winning_roll_header, award_filters.winning_roll, function( self )
+      m.WinnersPopupGui.create_checkbox_entry( self, "Show SR+", "show_sr_plus", cb_on_change )
     end )
 
-    m.WinnersPopupGui.create_dropdown( headers.roll_type_header, award_filters, function( self )
-      m.WinnersPopupGui.create_checkbox_entry( self, "MainSpec", "roll_type.MainSpec", cb_on_change )
-      m.WinnersPopupGui.create_checkbox_entry( self, "OffSpec", "roll_type.OffSpec", cb_on_change )
-      m.WinnersPopupGui.create_checkbox_entry( self, "Transmog", "roll_type.Transmog", cb_on_change )
-      m.WinnersPopupGui.create_checkbox_entry( self, "Soft reserve", "roll_type.SoftRes", cb_on_change )
-      m.WinnersPopupGui.create_checkbox_entry( self, "Raid roll", "roll_type.RR", cb_on_change )
-      m.WinnersPopupGui.create_checkbox_entry( self, "Other", "roll_type.NA", cb_on_change )
+    m.WinnersPopupGui.create_dropdown( headers.roll_type_header, award_filters.roll_type, function( self )
+      m.WinnersPopupGui.create_checkbox_entry( self, "MainSpec", "MainSpec", cb_on_change )
+      m.WinnersPopupGui.create_checkbox_entry( self, "OffSpec", "OffSpec", cb_on_change )
+      m.WinnersPopupGui.create_checkbox_entry( self, "Transmog", "Transmog", cb_on_change )
+      m.WinnersPopupGui.create_checkbox_entry( self, "Soft reserve", "SoftRes", cb_on_change )
+      m.WinnersPopupGui.create_checkbox_entry( self, "Raid roll", "RR", cb_on_change )
+      m.WinnersPopupGui.create_checkbox_entry( self, "Other", "NA", cb_on_change )
     end )
 
     scroll_frame = m.WinnersPopupGui.create_scroll_frame( popup, "RollForWinnersScrollFrame" )
@@ -322,7 +319,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
 
     local winners_count = getn( winners_data )
     local old_row_count = row_count
-    row_count = math.floor( ((popup:GetHeight() - (m.classic and 80 or 60)) / ROW_HEIGHT) + 0.4 )
+    row_count = math.floor( ((popup:GetHeight() - (m.classic and 80 or 60)) / ROW_HEIGHT) )
     m.api.FauxScrollFrame_Update( scroll_frame, winners_count, row_count, ROW_HEIGHT )
 
     if new_offset and new_offset == -1 then
@@ -410,7 +407,9 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     end
 
     for i = 1, row_count do
-      row_frames[ i ]:Hide()
+      if row_frames[ i ] then
+        row_frames[ i ]:Hide()
+      end
     end
 
     for index, v in ipairs( content ) do
@@ -440,8 +439,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
       make_content()
     end
     popup:Show()
-    offset = 0
-    refresh( offset )
+    refresh( 0 )
   end
 
   local function hide()
