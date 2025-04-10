@@ -134,7 +134,7 @@ local function create_components()
   ---@type TooltipReader
   M.tooltip_reader = m.TooltipReader.new( M.api() )
 
-  -- TODO: Add type.
+  ---@type VersionBroadcast
   M.version_broadcast = m.VersionBroadcast.new( db( "version_broadcast" ), M.player_info, version.str )
 
   ---@type AwardedLoot
@@ -295,12 +295,24 @@ local function create_components()
 
   ---@type WinnersPopup
   M.winners_popup = m.WinnersPopup.new(
-    popup_builder (),
+    popup_builder(),
     m.FrameBuilder,
     db( "winners_popup" ),
     M.awarded_loot,
     M.roll_controller,
     M.confirm_popup,
+    M.config
+  )
+
+  ---@type OptionsPopup
+  M.options_popup = m.OptionsPopup.new(
+    popup_builder(),
+    M.awarded_loot,
+    M.version_broadcast,
+    M.config_event_bus,
+    M.confirm_popup,
+    db( "options_popup" ),
+    db( "config" ),
     M.config
   )
 
@@ -314,7 +326,7 @@ local function create_components()
   M.usage_printer = m.UsagePrinter.new( M.chat )
 
   -- TODO: Add type.
-  M.minimap_button = m.MinimapButton.new( M.api, db( "minimap_button" ), M.softres_gui.toggle, M.winners_popup.toggle, M.softres_check, M.config )
+  M.minimap_button = m.MinimapButton.new( M.api, db( "minimap_button" ), M.softres_gui.toggle, M.winners_popup.toggle, M.options_popup.toggle, M.softres_check, M.config )
 
   -- TODO: Add type.
   M.master_loot_warning = m.MasterLootWarning.new( M.api, M.config, m.BossList.zones, M.player_info )
@@ -717,6 +729,9 @@ local function setup_slash_commands()
 
   SLASH_RFW1 = "/rfw"
   M.api().SlashCmdList[ "RFW" ] = M.winners_popup.show
+  SLASH_RFO1 = "/rfo"
+  M.api().SlashCmdList[ "RFO" ] = M.options_popup.show
+
   SLASH_RFT1 = "/rft"
   M.api().SlashCmdList[ "RFT" ] = M.sandbox.run
 

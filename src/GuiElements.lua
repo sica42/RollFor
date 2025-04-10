@@ -316,12 +316,7 @@ function M.tiny_button( parent, text, tooltip, color, font_size )
     button:SetWidth( 18 )
     button:SetHeight( 18 )
 
-    local highlight_texture = button:CreateTexture( nil, "HIGHLIGHT" )
-    highlight_texture:SetTexture( "Interface\\Buttons\\UI-Panel-MinimizeButton-Highlight" )
-    highlight_texture:SetTexCoord( .1875, .78125, .21875, .78125 )
-    highlight_texture:SetBlendMode( "ADD" )
-    highlight_texture:SetAllPoints( button )
-
+    button:SetHighlightTexture(  "Interface\\Buttons\\UI-Panel-MinimizeButton-Highlight" )
     if text == 'X' then
       button:SetNormalTexture( "Interface\\Buttons\\UI-Panel-MinimizeButton-Up" )
       button:SetPushedTexture( "Interface\\Buttons\\UI-Panel-MinimizeButton-Down" )
@@ -329,6 +324,7 @@ function M.tiny_button( parent, text, tooltip, color, font_size )
       button:SetNormalTexture( "Interface\\AddOns\\RollFor\\assets\\tiny-button-up.tga" )
       button:SetPushedTexture( "Interface\\AddOns\\RollFor\\assets\\tiny-button-down.tga" )
     end
+    button:GetHighlightTexture():SetTexCoord( .1875, .78125, .21875, .78125 )
     button:GetNormalTexture():SetTexCoord( .1875, .78125, .21875, .78125 )
     button:GetPushedTexture():SetTexCoord( .1875, .78125, .21875, .78125 )
 
@@ -389,7 +385,7 @@ function M.tiny_button( parent, text, tooltip, color, font_size )
   end )
   button:SetScript( "OnLeave", function()
     local self = button
-    if not self.active then
+    if not self.active and not m.classic then
       self:SetBackdropBorderColor( .2, .2, .2, 1 )
     end
     if tooltip and m.api.GameTooltip:IsVisible() then
@@ -502,22 +498,23 @@ function M.titlebar( parent, title, on_close )
   end
 
   local label = frame:CreateFontString( nil, "ARTWORK", "GameFontNormalSmall" )
-  label:SetPoint( "TOPLEFT", 10, -12 )
+  label:SetPoint( "TOPLEFT", 8, m.classic and -11 or -13 )
   label:SetPoint( "RIGHT", m.classic and -29 or 0, 0 )
   label:SetJustifyH( "CENTER" )
   label:SetTextColor( 1, 1, 1 )
   label:SetText( title )
   frame.title = label
 
-  local btn_close = M.tiny_button( parent, "X", "Close Window" )
-  btn_close:SetPoint( "TOPRIGHT", m.classic and -7 or -5, -5 )
-  btn_close:SetScript( "OnClick", function()
+  local close_btn = M.tiny_button( parent, "X", "Close Window" )
+  close_btn:SetPoint( "TOPRIGHT", -7, m.classic and -5 or -7 )
+  close_btn:SetScript( "OnClick", function()
     if on_close then
       on_close()
     else
       if parent then parent:Hide() end
     end
   end )
+  frame.close_btn = close_btn
 
   return frame
 end

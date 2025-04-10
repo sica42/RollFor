@@ -136,7 +136,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     m.GuiElements.titlebar( popup, "Winners" )
 
     local btn_reset = m.GuiElements.tiny_button( popup, "R", "Reset Sorting", "#20F99F" )
-    btn_reset:SetPoint( "TOPRIGHT", m.classic and -29 or -23, m.classic and -5 or -5 )
+    btn_reset:SetPoint( "TOPRIGHT", m.classic and -29 or -25, m.classic and -5 or -7 )
     btn_reset:SetScript( "OnClick", function()
       sort = nil
       refresh( offset )

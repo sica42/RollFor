@@ -55,7 +55,7 @@ function M.new( roll_controller, softres, config )
     end
 
     local tex = data.item.texture and string.gsub( data.item.texture, "Interface\\Icons\\", "" ) or ""
-    local tmog_rolling_enabled = config.tmog_rolling_enabled() and (data.item.is_boss_loot or not config.auto_tmog_disable() )
+    local tmog_rolling_enabled = config.tmog_rolling_enabled() and (data.item.is_boss_loot or not config.auto_tmog() )
     local softressing_players = softres.get( data.item.id )
     local sr_players = {}
     for _, player in ipairs( softressing_players ) do

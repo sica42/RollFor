@@ -62,7 +62,7 @@ function M.new(
   local os_threshold = config.os_roll_threshold()
   local tmog_threshold = config.tmog_roll_threshold()
   local tmog_rolling_enabled = config.tmog_rolling_enabled()
-  tmog_rolling_enabled = tmog_rolling_enabled and (item.is_boss_loot or not config.auto_tmog_disable() )
+  tmog_rolling_enabled = tmog_rolling_enabled and (item.is_boss_loot or not config.auto_tmog() )
 
   local function sort_rolls()
     local f = function( a, b )

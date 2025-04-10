@@ -54,7 +54,7 @@ function M.new( db, event_bus )
     if not db.tmog_roll_threshold then db.tmog_roll_threshold = 98 end
     if not db.superwow_auto_loot_coins then db.superwow_auto_loot_coins = true end
     if db.tmog_rolling_enabled == nil then db.tmog_rolling_enabled = true end
-    if db.auto_tmog_disable == nil then db.auto_tmog_disable = false end
+    if db.auto_tmog == nil then db.auto_tmog = false end
     if db.show_ml_warning == nil then db.show_ml_warning = false end
     if db.default_rolling_time_seconds == nil then db.default_rolling_time_seconds = 8 end
     if db.master_loot_frame_rows == nil then db.master_loot_frame_rows = 5 end
@@ -499,11 +499,9 @@ function M.new( db, event_bus )
     client_show_roll_popup = get( "client_show_roll_popup" ),
     client_auto_hide_popup = get( "client_auto_hide_popup" ),
     enable_client_roll_popup = enable_client_roll_popup,
-    auto_tmog_disable = get( "auto_tmog_disable" ),
-    auto_class_announce = get( "auto_class_announce" ),
     award_filter = get( "award_filter" ),
     keep_award_data = get( "keep_award_data" ),
-    loot_frame_cursor = get( "loot_frame_cursor" )
+    notify_subscribers = notify_subscribers
   }
 
   for toggle_key, _ in pairs( toggles ) do

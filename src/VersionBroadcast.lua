@@ -5,6 +5,16 @@ if m.VersionBroadcast then return end
 
 local M = {}
 
+---@class VersionBroadcast
+---@field on_group_changed fun()
+---@field broadcast fun()
+---@field on_version fun( their_version: string )
+---@field on_version_request fun( channel: string, requesting_player_name: string )
+---@field on_version_response fun( requesting_player_name: string, channel: string, their_name: string, their_class: PlayerClass, their_version: string )
+---@field group_version_request fun()
+---@field guild_version_request fun()
+---@field new_version_available fun(): string|boolean
+
 local pp = m.pretty_print
 local ADDON_NAME = "RollFor"
 local orange = m.colors.orange
@@ -51,6 +61,7 @@ function M.new( db, player_info, my_version )
 
   local function notify_about_new_version( ver )
     db.last_new_version_reminder_timestamp = m.lua.time()
+    db.new_version = ver
     pp( string.format( "New version (%s) is available!", m.colors.highlight( string.format( "v%s", ver ) ) ) )
     pp( "https://github.com/obszczymucha/roll-for-vanilla/releases/download/latest/RollFor.zip" )
   end
@@ -106,6 +117,14 @@ function M.new( db, player_info, my_version )
     version_request( "GUILD" )
   end
 
+  local function new_version_available()
+    if db.new_version then
+      return db.new_version
+    else
+      return false
+    end
+  end
+
   return {
     on_group_changed = on_group_changed,
     broadcast = broadcast,
@@ -114,6 +133,7 @@ function M.new( db, player_info, my_version )
     on_version_response = on_version_response,
     group_version_request = group_version_request,
     guild_version_request = guild_version_request,
+    new_version_available = new_version_available,
   }
 end
 

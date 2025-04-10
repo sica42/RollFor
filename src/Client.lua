@@ -276,6 +276,11 @@ function M.new( ace_timer, player_info, rolling_popup, config )
 
     if show_rolling then
       if command == "ROLL" then
+        if not data.player_name then
+          M.debug.add ( "No player_name on roll" )
+          return
+        end
+
         roll_tracker.add( data.player_name, data.player_class, data.roll_type, data.roll )
         if data.player_name == player_info.get_name() then
           player_can_roll = false
@@ -335,7 +340,8 @@ function M.new( ace_timer, player_info, rolling_popup, config )
         tie_content()
       elseif command == "AWARDED" then
         if data.player_name == player_info.get_name() then
-          m.api.PlaySound( "QUESTCOMPLETED" )
+          m.api.PlaySound( "RaidWarning" )
+          m.api.PlaySound( "PVPTHROUGHQUEUE" )
         end
 
         if config.client_auto_hide_popup() then

@@ -20,7 +20,7 @@ local ColorType = {
   Red = "Red"
 }
 
-function M.new( api, db, manage_softres_fn, winners_popup_fn, softres_check, config )
+function M.new( api, db, manage_softres_fn, winners_popup_fn, options_popup_fn, softres_check, config )
   local icon_color
 
   local function persist_angle( angle )
@@ -60,6 +60,8 @@ function M.new( api, db, manage_softres_fn, winners_popup_fn, softres_check, con
 
       if m.is_shift_key_down() then
         winners_popup_fn()
+      elseif m.is_ctrl_key_down() then
+        options_popup_fn()
       else
         manage_softres_fn()
       end
