@@ -12,6 +12,9 @@ local info = m.pretty_print
 local hl = m.colors.highlight
 local RollSlashCommand = m.Types.RollSlashCommand
 
+_RollFor = M
+BINDING_HEADER_ROLLFOR = "RollFor"
+
 local function clear_data()
   M.softres_gui.clear()
   M.name_matcher.clear( true )
@@ -264,7 +267,8 @@ local function create_components()
     M.config,
     M.rolling_popup,
     M.loot_award_popup,
-    M.player_selection_frame
+    M.player_selection_frame,
+    M.player_info
   )
 
   ---@type LootAwardCallback
@@ -311,6 +315,7 @@ local function create_components()
     M.version_broadcast,
     M.config_event_bus,
     M.confirm_popup,
+    M.group_roster,
     db( "options_popup" ),
     db( "config" ),
     M.config
@@ -326,7 +331,14 @@ local function create_components()
   M.usage_printer = m.UsagePrinter.new( M.chat )
 
   -- TODO: Add type.
-  M.minimap_button = m.MinimapButton.new( M.api, db( "minimap_button" ), M.softres_gui.toggle, M.winners_popup.toggle, M.options_popup.toggle, M.softres_check, M.config )
+  M.minimap_button = m.MinimapButton.new(
+    M.api, db( "minimap_button" ),
+    M.softres_gui.toggle,
+    M.winners_popup.toggle,
+    M.options_popup.toggle,
+    M.softres_check,
+    M.config
+  )
 
   -- TODO: Add type.
   M.master_loot_warning = m.MasterLootWarning.new( M.api, M.config, m.BossList.zones, M.player_info )
@@ -582,6 +594,30 @@ local function on_softres_command( args )
   M.softres_gui.toggle()
 end
 
+local function on_check_softres_command( args )
+  if args == "announce" or args == "a" then
+    local result, players = M.softres_check.check_softres( true )
+
+    if result == M.softres_check.ResultType.SomeoneIsNotSoftRessing and m.raid_id then
+      local msg = string.format( "https://raidres.fly.dev/res/%s - ", m.raid_id )
+
+      for i = 1, getn( players ) do
+        local separator = i == 1 and "" or ", "
+        local player_name = players[ i ].name
+        local grouped_player = M.group_roster.find_player( player_name )
+        local next = grouped_player and m.colorize_player_by_class( grouped_player.name, grouped_player.class ) or player_name
+
+        msg = msg .. separator .. next
+      end
+      msg = string.gsub(msg, "^(.*),%s*(.*)$", "%1 and %2")
+      msg = msg .. " missing SR"
+      M.chat.announce( msg, false )
+    end
+  else
+    M.softres_check.check_softres()
+  end
+end
+
 local function on_roll( player_name, roll, min, max )
   local player = M.group_roster.find_player( player_name )
 
@@ -723,7 +759,7 @@ local function setup_slash_commands()
   SLASH_SRS1 = "/srs"
   M.api().SlashCmdList[ "SRS" ] = M.softres_check.show_softres
   SLASH_SRC1 = "/src"
-  M.api().SlashCmdList[ "SRC" ] = M.softres_check.check_softres
+  M.api().SlashCmdList[ "SRC" ] = on_check_softres_command
   SLASH_SRO1 = "/sro"
   M.api().SlashCmdList[ "SRO" ] = M.name_matcher.manual_match
 
@@ -800,7 +836,7 @@ function M.on_chat_msg_addon( name, message, _, sender )
   end
 
   for data in string.gmatch( message, "ROLL::(.*)" ) do
-    M.client.on_message ( data, sender )
+    M.client.on_message( data, sender )
     return
   end
 end

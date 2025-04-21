@@ -14,9 +14,14 @@ local filter = m.filter
 ---@field toggle fun()
 
 local M = m.Module.new( "WinnersPopup" )
---M.debug.enable()
 
 ROW_HEIGHT = 14
+
+---@type GuiElements
+m.GuiElements = m.GuiElements
+
+---@type WinnersPopupGui
+m.WinnersPopupGui = m.WinnersPopupGui
 
 M.center_point = { point = "CENTER", relative_point = "CENTER", x = 0, y = 150 }
 
@@ -81,7 +86,6 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
         old_height = self:GetHeight()
         refresh( offset, false )
       end
-      --scroll_frame:update_scroll_state()
     end
 
     local function get_point()
@@ -126,14 +130,10 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
       refresh()
     end
 
-    local function cb_on_change()
-      refresh()
-    end
-
     m.GuiElements.titlebar( popup, "Winners" )
 
     local btn_reset = m.GuiElements.tiny_button( popup, "R", "Reset Sorting", "#20F99F" )
-    btn_reset:SetPoint( "TOPRIGHT", m.classic and -29 or -25, m.classic and -5 or -7 )
+    btn_reset:SetPoint( "TOPRIGHT", popup, "TOPRIGHT", m.classic and -29 or -25, m.classic and -5 or -7 )
     btn_reset:SetScript( "OnClick", function()
       sort = nil
       refresh()
@@ -165,41 +165,54 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
         db.height = frame:GetHeight()
       end
     )
-    btn_resize:SetPoint( "BOTTOMRIGHT", m.classic and -4 or 0, m.classic and 4 or 0 )
+    btn_resize:SetPoint( "BOTTOMRIGHT", popup, "BOTTOMRIGHT", m.classic and -4 or 0, m.classic and 4 or 0 )
 
     local padding_top = m.classic and -20 or -10
     local padding_side = m.classic and 30 or 20
 
     headers = m.WinnersPopupGui.headers( popup, set_sort )
-    headers:SetPoint( "TOPLEFT", padding_side, padding_top - 20 )
-    headers:SetPoint( "RIGHT", -padding_side, 0 )
+    headers:SetPoint( "TOPLEFT", popup, "TOPLEFT", padding_side, padding_top - 20 )
+    headers:SetPoint( "RIGHT", popup, "RIGHT", -padding_side, 0 )
 
-    m.WinnersPopupGui.create_dropdown( headers.item_id_header, award_filters.item_quality, function( self )
-      m.WinnersPopupGui.create_checkbox_entry( self, "Poor", "Poor", cb_on_change )
-      m.WinnersPopupGui.create_checkbox_entry( self, "Common", "Common", cb_on_change )
-      m.WinnersPopupGui.create_checkbox_entry( self, "Uncommon", "Uncommon", cb_on_change )
-      m.WinnersPopupGui.create_checkbox_entry( self, "Rare", "Rare", cb_on_change )
-      m.WinnersPopupGui.create_checkbox_entry( self, "Epic", "Epic", cb_on_change )
-      m.WinnersPopupGui.create_checkbox_entry( self, "Legendary", "Legendary", cb_on_change )
+    ---@class HeaderFrame
+    headers.item_id_header.dropdown = m.GuiElements.dropdown( headers.item_id_header, "RightButton", {
+      { text = "Poor",      value = "Poor",      type = "checkbox", checked = award_filters.item_quality.Poor },
+      { text = "Common",    value = "Common",    type = "checkbox", checked = award_filters.item_quality.Common },
+      { text = "Uncommon",  value = "Uncommon",  type = "checkbox", checked = award_filters.item_quality.Uncommon },
+      { text = "Rare",      value = "Rare",      type = "checkbox", checked = award_filters.item_quality.Rare },
+      { text = "Epic",      value = "Epic",      type = "checkbox", checked = award_filters.item_quality.Epic },
+      { text = "Legendary", value = "Legendary", type = "checkbox", checked = award_filters.item_quality.Legendary }
+    }, function( value, checked )
+      award_filters.item_quality[ value ] = checked and true or false
+      refresh()
     end )
+    headers.item_id_header.dropdown:SetPoint( "TOPLEFT", headers.item_id_header, "BOTTOMLEFT", 0, -1 )
 
-    m.WinnersPopupGui.create_dropdown( headers.winning_roll_header, award_filters.winning_roll, function( self )
-      m.WinnersPopupGui.create_checkbox_entry( self, "Show SR+", "show_sr_plus", cb_on_change )
+    headers.winning_roll_header.dropdown = m.GuiElements.dropdown( headers.winning_roll_header, "RightButton", {
+      { text = "Show SR+", value = "show_sr_plus", type = "checkbox", checked = award_filters.winning_roll.show_sr_plus }
+    }, function( value, checked )
+      award_filters.winning_roll[ value ] = checked and true or false
+      refresh()
     end )
+    headers.winning_roll_header.dropdown:SetPoint( "TOPRIGHT", headers.winning_roll_header, "BOTTOMRIGHT", 0, -1 )
 
-    m.WinnersPopupGui.create_dropdown( headers.roll_type_header, award_filters.roll_type, function( self )
-      m.WinnersPopupGui.create_checkbox_entry( self, "MainSpec", "MainSpec", cb_on_change )
-      m.WinnersPopupGui.create_checkbox_entry( self, "OffSpec", "OffSpec", cb_on_change )
-      m.WinnersPopupGui.create_checkbox_entry( self, "Transmog", "Transmog", cb_on_change )
-      m.WinnersPopupGui.create_checkbox_entry( self, "Soft reserve", "SoftRes", cb_on_change )
-      m.WinnersPopupGui.create_checkbox_entry( self, "Raid roll", "RR", cb_on_change )
-      m.WinnersPopupGui.create_checkbox_entry( self, "Other", "NA", cb_on_change )
+    headers.roll_type_header.dropdown = m.GuiElements.dropdown( headers.roll_type_header, "RightButton", {
+      { text = "MainSpec", value = "MainSpec", type = "checkbox", checked = award_filters.roll_type.MainSpec },
+      { text = "OffSpec", value = "OffSpec", type = "checkbox", checked = award_filters.roll_type.OffSpec },
+      { text = "Transmog", value = "Transmog", type = "checkbox", checked = award_filters.roll_type.Transmog },
+      { text = "Soft reserve", value = "SoftRes", type = "checkbox", checked = award_filters.roll_type.SoftRes },
+      { text = "Raid roll", value = "RR", type = "checkbox", checked = award_filters.roll_type.RR },
+      { text = "Other", value = "NA", type = "checkbox", checked = award_filters.roll_type.NA }
+    }, function( value, checked )
+      award_filters.roll_type[ value ] = checked and true or false
+      refresh()
     end )
+    headers.roll_type_header.dropdown:SetPoint( "TOPRIGHT", headers.roll_type_header, "BOTTOMRIGHT", 0, -1 )
 
     scroll_frame = m.WinnersPopupGui.create_scroll_frame( popup, "RollForWinnersScrollFrame" )
     scroll_frame.name = scroll_frame:GetName()
-    scroll_frame:SetPoint( "TOPLEFT", padding_side, padding_top - 35 )
-    scroll_frame:SetPoint( "BOTTOMRIGHT", -padding_side, m.classic and 20 or 15 )
+    scroll_frame:SetPoint( "TOPLEFT", popup, "TOPLEFT", padding_side, padding_top - 35 )
+    scroll_frame:SetPoint( "BOTTOMRIGHT", popup, "BOTTOMRIGHT", -padding_side, m.classic and 20 or 15 )
     scroll_frame:SetScript( "OnVerticalScroll", function()
       m.api.FauxScrollFrame_OnVerticalScroll( ROW_HEIGHT, function()
         refresh( m.api.FauxScrollFrame_GetOffset( scroll_frame ), false )
@@ -215,7 +228,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
         :bg_file( "Interface/Buttons/WHITE8x8" )
         :gui_elements( m.WinnersPopupGui )
         :border_size( .5 )
-        :border_color( .2, .2, .2, 1)
+        :border_color( .2, .2, .2, 1 )
         :frame_style( "Modern" )
         :build()
 

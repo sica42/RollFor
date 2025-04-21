@@ -50,6 +50,8 @@ function M.transform( data )
   local hard_reserves = data.hardreserves or {}
   local soft_reserves = data.softreserves or {}
 
+  m.raid_id = data.metadata and data.metadata.id or nil
+
   local function find_roller( roller_name, rollers )
     for _, roller in ipairs( rollers ) do
       if roller.name == roller_name then

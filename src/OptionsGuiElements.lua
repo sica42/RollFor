@@ -3,15 +3,29 @@ local m = RollFor
 
 if m.OptionsGuiElements then return end
 
+---@class ScrollFrame: Frame
+---@field SetScrollChild fun( parent: Frame, scroll_child: Frame )
+---@field content Frame
+
+---@class ChildFrame: Frame
+
+---@class InputFrame
+---@field GetChecked fun(): boolean
+---@field disable fun()
+---@field enable fun()
+
+---@class ConfigFrame: Frame
+---@field input InputFrame
+
 ---@class OptionsGuiElements
----@field create_gui_entry fun( title: string, frames: Frame, populate: function )
+---@field create_gui_entry fun( title: string, frames: table, populate: function )
 ---@field entry_update fun()
 ---@field create_backdrop fun( f: table, insert: number?, legacy: boolean?, transp: number?, backdropSetting: table? )
----@field create_scroll_child fun( name: string, parent: Frame ): Frame
+---@field create_scroll_frame fun( parent: Frame, name: string? ): ScrollFrame
+---@field create_scroll_child fun( parent: ScrollFrame, name: string? ): ChildFrame
 ---@field create_tab_frame fun( parent: table, title: string ): Frame
 ---@field create_area fun( parent: table, title: string, func: function ): Frame
----@field create_config fun( caption: string, setting: any, widget: string, tooltip: string?, ufunc: function? )
-
+---@field create_config fun( caption: string, setting: any, widget: string, tooltip: string?, ufunc: function?, options: table? ): ConfigFrame
 local M = {}
 
 local function get_perfect_pixel()
@@ -32,9 +46,6 @@ function M.set_all_points_offset( frame, parent, offset )
   frame:SetPoint( "BOTTOMRIGHT", parent, "BOTTOMRIGHT", -offset, offset )
 end
 
----@param title string
----@param frames table
----@param populate function
 function M.create_gui_entry( title, frames, populate )
   if not frames[ title ] then
     frames[ title ] = M.create_tab_frame( frames, title )
@@ -43,6 +54,11 @@ function M.create_gui_entry( title, frames, populate )
 end
 
 function M.entry_update()
+  local focus = m.api.GetMouseFocus()
+  if (focus and focus.value) then
+    return
+  end
+
   if m.api.MouseIsOver( this ) and not this.over then
     this.tex:Show()
     this.over = true
@@ -191,8 +207,8 @@ function M.create_tab_frame( parent, title )
   if not parent.tab_area.count then parent.tab_area.count = 0 end
 
   local f = m.api.CreateFrame( "Button", nil, parent.tab_area )
-  f:SetPoint( "TOPLEFT", parent.tab_area, "TOPLEFT", parent.tab_area.count * 80, 0 )
-  f:SetPoint( "BOTTOMRIGHT", parent.tab_area, "TOPLEFT", (parent.tab_area.count + 1) * 80, -20 )
+  f:SetPoint( "TOPLEFT", parent.tab_area, "TOPLEFT", parent.tab_area.count * 65, 0 )
+  f:SetPoint( "BOTTOMRIGHT", parent.tab_area, "TOPLEFT", (parent.tab_area.count + 1) * 65, -20 )
   f.parent = parent
 
   f:SetScript( "OnClick", function()
@@ -232,6 +248,7 @@ function M.create_area( parent, title, func )
   f.bg:SetAllPoints()
 
   f:SetScript( "OnShow", function()
+    parent.active_area = title
     this.indexed = true
     this.button.text:SetTextColor( 0.1254, 0.6235, 0.9764, 1 )
     this.button.bg:SetTexture( 1, 1, 1, 1 )
@@ -246,6 +263,8 @@ function M.create_area( parent, title, func )
   if func then
     f.scroll = M.create_scroll_frame( f )
     M.set_all_points_offset( f.scroll, f, 2 )
+
+    ---@class ChildFrame
     f.scroll.content = M.create_scroll_child( f.scroll )
     f.scroll.content.parent = f.scroll
     f.scroll.content:SetScript( "OnShow", function()
@@ -260,36 +279,30 @@ function M.create_area( parent, title, func )
   return f
 end
 
----@param caption string
----@param setting any|nil
----@param widget string
----@param tooltip string|nil
----@param ufunc? function
----@return Frame
-function M.create_config( caption, setting, widget, tooltip, ufunc )
+function M.create_config( caption, setting, widget, tooltip, ufunc, options )
   local function parse_options()
     local w = string.sub( widget, 1, (string.find( widget, "|", nil, true ) or 0) - 1 )
-    local options = {}
+    local opt = {}
     for key, value in string.gmatch( widget, ("|(%a+)=([^|]+)") ) do
-      options[ key ] = tonumber( value ) or value
+      opt[ key ] = tonumber( value ) or value
     end
 
-    return w, options
+    return w, opt
   end
 
   this.object_count = this.object_count == nil and 0 or this.object_count + 1
 
-  local frame = m.api.CreateFrame( "Frame", nil, this )
   local config_db = this:GetParent():GetParent():GetParent().config_db
-
+  local frame = m.api.CreateFrame( "Frame", nil, this )
   frame:SetWidth( this:GetParent():GetWidth() - 22 )
   frame:SetHeight( 22 )
   frame:SetPoint( "TOPLEFT", this, "TOPLEFT", 5, (this.object_count * -23) - 5 )
   frame.config = setting
   frame.tooltip = tooltip
 
-  local options
-  widget, options = parse_options()
+  if not options then
+    widget, options = parse_options()
+  end
 
   if not widget or (widget and widget ~= "button") then
     if widget ~= "header" then
@@ -322,13 +335,13 @@ function M.create_config( caption, setting, widget, tooltip, ufunc )
   end
 
   if setting then
-    if not widget or widget == "number" then
+    if not widget or widget == "number" or widget == "text" then
       frame.input = m.api.CreateFrame( "EditBox", nil, frame )
       M.create_backdrop( frame.input, nil, true )
       frame.input:SetTextInsets( 5, 5, 5, 5 )
       frame.input:SetTextColor( 0.1254, 0.6235, 0.9764, 1 )
       frame.input:SetJustifyH( "RIGHT" )
-      frame.input:SetWidth( 50 )
+      frame.input:SetWidth( options.width and options.width or 50 )
       frame.input:SetHeight( 18 )
       frame.input:SetPoint( "RIGHT", -3, 0 )
       frame.input:SetFontObject( "GameFontNormal" )
@@ -338,6 +351,37 @@ function M.create_config( caption, setting, widget, tooltip, ufunc )
         this:ClearFocus()
       end )
 
+      frame.input.disable = function()
+        frame.input.disabled = true
+        frame.input:EnableKeyboard( false )
+        frame.input:EnableMouse( false )
+        frame.input:SetTextColor( .5, .5, .5, 1 )
+        frame.caption:SetTextColor( .5, .5, .5, 1 )
+      end
+      frame.input.enable = function()
+        frame.input.disabled = false
+        frame.input:EnableKeyboard( true )
+        frame.input:EnableMouse( true )
+        frame.input:SetTextColor( 0.1254, 0.6235, 0.9764, 1 )
+        frame.caption:SetTextColor( 1, 1, 1, 1 )
+      end
+    end
+
+    if widget == "text" then
+      frame.input:SetScript( "OnEditFocusGained", function()
+        frame.input:HighlightText()
+      end )
+      frame.input:SetScript( "OnTextChanged", function()
+        local v = this:GetText()
+        if ufunc then
+          ufunc( v )
+        else
+          config_db[ setting ] = v
+        end
+      end )
+    end
+
+    if not widget or widget == "number" then
       frame.input:SetScript( "OnTextChanged", function()
         local v = tonumber( this:GetText() )
         local valid = v and ((not options.min or v >= options.min) and (not options.max or v <= options.max))
@@ -345,7 +389,7 @@ function M.create_config( caption, setting, widget, tooltip, ufunc )
         if valid then
           if config_db[ setting ] ~= v then
             config_db[ setting ] = v
-            if ufunc then ufunc() end
+            if ufunc then ufunc( v ) end
           end
           this:SetTextColor( 0.1254, 0.6235, 0.9764, 1 )
         else
@@ -363,17 +407,42 @@ function M.create_config( caption, setting, widget, tooltip, ufunc )
       frame.input:SetWidth( 14 )
       frame.input:SetHeight( 14 )
       frame.input:SetPoint( "RIGHT", -3, 1 )
+
+      frame.input.disable = function()
+        frame.input.disabled = true
+        frame.input:EnableMouse( false )
+        local tex = frame.input:GetCheckedTexture()
+        tex:SetVertexColor( .5, .5, .5, 1 )
+        frame.caption:SetTextColor( .5, .5, .5, 1 )
+      end
+      frame.input.enable = function()
+        frame.input.disabled = false
+        frame.input:EnableMouse( true )
+        local tex = frame.input:GetCheckedTexture()
+        tex:SetVertexColor( 1, 1, 1, 1 )
+        frame.caption:SetTextColor( 1, 1, 1, 1 )
+      end
+
       frame.input:SetScript( "OnClick", function()
         if this:GetChecked() then
           config_db[ setting ] = true
         else
-          config_db [ setting ] = false
+          config_db[ setting ] = false
         end
 
-        if ufunc then ufunc() end
+        if ufunc then ufunc( this:GetChecked() ) end
       end )
 
       if config_db[ setting ] == true then frame.input:SetChecked() end
+    end
+
+    if widget == "dropdown" then
+      frame.input = M.dropdown_input( frame, options, config_db[ setting ], function( value, text )
+        frame.input.label:SetText( text )
+        config_db[ setting ] = value
+        if ufunc then ufunc( value ) end
+      end )
+      frame.input:SetPoint( "RIGHT", -3, 0 )
     end
   end
 
@@ -388,7 +457,7 @@ function M.create_config( caption, setting, widget, tooltip, ufunc )
     local w = frame.button:GetTextWidth() + 10
     frame.button:SetWidth( w )
     frame.button:SetHeight( 20 )
-    frame.button:SetPoint( "TOPLEFT", (this:GetParent():GetWidth()  / 2 - w / 2 - 10), -5 )
+    frame.button:SetPoint( "TOPLEFT", (this:GetParent():GetWidth() / 2 - w / 2 - 10), -5 )
     frame.button:SetTextColor( 1, 1, 1, 1 )
     frame.button:SetScript( "OnClick", ufunc )
     frame.button:SetScript( "OnEnter", function()
@@ -408,6 +477,44 @@ function M.create_config( caption, setting, widget, tooltip, ufunc )
       end
     end )
   end
+
+  return frame
+end
+
+function M.dropdown_input( parent, items_data, selected, on_select )
+  local frame = m.api.CreateFrame( "Button", nil, parent )
+  M.create_backdrop( frame, nil, true )
+  frame:SetWidth( 80 )
+  frame:SetHeight( 18 )
+
+  frame.label = frame:CreateFontString( nil, "ARTWORK", "GameFontNormal" )
+  frame.label:SetTextColor( 0.1254, 0.6235, 0.9764, 1 )
+  frame.label:SetJustifyH( "RIGHT" )
+  frame.label:SetText( selected )
+  frame.label:SetPoint( "RIGHT", -18, 0 )
+
+  frame.button = m.api.CreateFrame( "Frame", nil, frame )
+  M.create_backdrop( frame.button, nil, true )
+  frame.button:SetWidth( 12 )
+  frame.button:SetHeight( 12 )
+  frame.button:SetPoint( "RIGHT", -1, 0 )
+
+  local icon = frame.button:CreateTexture()
+  icon:SetTexture( "Interface\\AddOns\\RollFor\\assets\\arrow-down.tga", "ARTWORK" )
+  icon:SetWidth( 6 )
+  icon:SetHeight( 6 )
+  icon:SetPoint( "CENTER", 0, 0 )
+
+  frame.dropdown = m.GuiElements.dropdown( frame, "LeftButton", items_data, on_select )
+  frame.dropdown:SetPoint( "TOPLEFT", frame, "BOTTOMLEFT", 0, -2 )
+  frame.dropdown:SetPoint( "TOPRIGHT", frame, "BOTTOMRIGHT", 0, -2 )
+
+  frame:SetScript( "OnEnter", function()
+    frame.button:SetBackdropBorderColor( 0.1254, 0.6235, 0.9764, 1 )
+  end )
+  frame:SetScript( "OnLeave", function()
+    frame.button:SetBackdropBorderColor( .2, .2, .2, 1 )
+  end )
 
   return frame
 end

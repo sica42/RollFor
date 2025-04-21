@@ -54,28 +54,30 @@ M.interface = {
 ---@field SetWidth fun( frame: Frame, width: number )
 ---@field SetHeight fun( frame: Frame, height: number )
 ---@field SetPoint fun( frame: Frame, point: string, relative_frame: Frame|string, relative_point: string, x: number, y: number )
+---@field SetAllPoints fun( frame: Frame, relativeTo?: Frame|string, doResize?: boolean )
+---@field SetScript fun( frame: Frame, scriptTypeName: string, script: function|nil )
 ---@field GetScale fun(): number
 ---@field GetWidth fun(): number
 ---@field GetHeight fun(): number
 ---@field StartSizing fun( self: Frame, resizePoint: string?, alwaysStartFromMouse: boolean? )
 ---@field StopMovingOrSizing fun()
 ---@field ClearAllPoints fun()
----@field SetAllPoints fun( frame: Frame, relativeTo?: Frame|string, doResize?: boolean )
----@field SetScript fun( frame: Frame, scriptTypeName: string, script: function|nil )
 ---@field IsVisible fun( self ): boolean
 ---@field GetName fun(): string?
 ---@field SetFrameStrata fun( self: Frame, strata: string )
+---@field GetFrameLevel fun( self: Frame ): number
+---@field SetFrameLevel fun( self: Frame, level: number )
 ---@field CreateTexture fun( self: Frame, name: string?, layer: string ): Texture
 ---@field SetNormalTexture fun( self: Frame, texture: string )
 ---@field SetPushedTexture fun( self: Frame, texture: string )
+---@field SetHighlightTexture fun( self: Frame, texture: string )
 ---@field CreateFontString fun( self: Frame, name: string?, layer: string, font: string ): FontString
 ---@field SetScript fun( self: Frame, event: string, callback: function )
 ---@field GetTop fun(): number
 ---@field GetBottom fun(): number
 ---@field GetLeft fun(): number
 ---@field GetRight fun(): number
----@field SetPushedTexture fun( self: Frame, texture: string )
----@field SetHighlightTexture fun( self: Frame, texture: string )
+---@field EnableMouse fun( self: Frame, enabled: boolean? )
 
 ---@alias Anchor table
 

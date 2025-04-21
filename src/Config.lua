@@ -28,16 +28,21 @@ function M.new( db, event_bus )
     [ "auto_loot_messages" ] = { cmd = "auto-loot-messages", display = "Auto-loot messages", help = "toggle auto-loot messages" },
     [ "auto_loot_announce" ] = { cmd = "auto-loot-announce", display = "Announce auto-looted items", help = "toggle announcements of auto-loot items" },
     [ "auto_class_announce" ] = { cmd = "auto-class-announce", display = "Announce class restriction on items", help = "toggle announcing of class restriction on items" },
-    [ "auto_tmog" ] = { cmd = "auto-tmog", display = "Disable transmog roll on trash loot", help ="toggle transmog roll on trash loot" },
+    [ "auto_tmog" ] = { cmd = "auto-tmog", display = "Disable transmog roll on trash loot", help = "toggle transmog roll on trash loot" },
     [ "show_ml_warning" ] = { cmd = "ml", display = "Master loot warning", help = "toggle master loot warning" },
     [ "auto_raid_roll" ] = { cmd = "auto-rr", display = "Auto raid-roll", help = "toggle auto raid-roll" },
     [ "auto_group_loot" ] = { cmd = "auto-group-loot", display = "Auto group loot", help = "toggle auto group loot" },
     [ "auto_master_loot" ] = { cmd = "auto-master-loot", display = "Auto master loot", help = "toggle auto master loot" },
     [ "rolling_popup_lock" ] = { cmd = "rolling-popup-lock", display = "Rolling popup lock", help = "toggle rolling popup lock" },
     [ "raid_roll_again" ] = { cmd = "raid-roll-again", display = string.format( "%s button", hl( "Raid roll again" ) ), help = string.format( "toggle %s button", hl( "Raid roll again" ) ) },
-    [ "loot_frame_cursor" ] = { cmd = "loot-frame-cursor", display = "Display loot frame at cursor position", help = "toggle displaying loot frame at cursor position"},
+    [ "loot_frame_cursor" ] = { cmd = "loot-frame-cursor", display = "Display loot frame at cursor position", help = "toggle displaying loot frame at cursor position" },
     [ "classic_look" ] = { cmd = "classic-look", display = "Classic look", help = "toggle classic look", requires_reload = true },
     [ "client_auto_hide_popup" ] = { cmd = "auto-hide", display = "Hide popup when rolling is complete", help = "toggle hiding of roll popup", client = true },
+    [ "client_auto_roll_sr" ] = { cmd = "auto-roll-sr", display = "Auto roll on SR items", help = "automatically roll on SR items", client = true },
+    [ "enable_quick_award_shift" ] = { cmd = "enable-quick-award-shift", display = "Enable Shift-click on award other button", help = "Enable Shift-click on award other button award to self" },
+    [ "enable_quick_award_ctrl" ] = { cmd = "enable-quick-award-ctrl", display = "Enable Ctrl-click on award other button", help = "Enable Ctrl-click on award others button to award pre-selected player" },
+    [ "disable_quick_award_confirm" ] = { cmd = "disable-quick-award-confirm", display = "Disable confirmation on quick award", help = "disable confirmation on quick award (shift/ctrl click)" },
+    [ "disable_quick_award_confirm_bop" ] = { cmd = "disable-quick-award-confirm-bop", display = "Allow BOP items to be quick awarded without confirmation", help = "allow BOP items to be quick looted without confirmation popup" },
   }
 
   local function notify_subscribers( event, value )
@@ -64,6 +69,7 @@ function M.new( db, event_bus )
     if db.loot_frame_cursor == nil then db.loot_frame_cursor = false end
     if db.client_show_roll_popup == nil then db.client_show_roll_popup = "Off" end
     if db.client_auto_hide_popup == nil then db.client_auto_hide_popup = false end
+    if db.quick_award_ctrl == nil then db.quick_award_ctrl = "Disabled" end
     if not db.award_filter then
       db.award_filter = {
         item_quality = { Uncommon = 1, Rare = 1, Epic = 1, Legendary = 1 },
@@ -501,6 +507,7 @@ function M.new( db, event_bus )
     enable_client_roll_popup = enable_client_roll_popup,
     award_filter = get( "award_filter" ),
     keep_award_data = get( "keep_award_data" ),
+    quick_award_ctrl = get( "quick_award_ctrl" ),
     notify_subscribers = notify_subscribers
   }
 

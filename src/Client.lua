@@ -233,6 +233,9 @@ function M.new( ace_timer, player_info, rolling_popup, config )
         player_can_roll = true
       elseif m.find( player_info.get_name(), data.softressing_players, 'name' ) then
         player_can_roll = true
+        if config.client_auto_roll_sr() then
+          m.api.RandomRoll( 1, data.roll_threshold.ms )
+        end
       else
         player_can_roll = false
       end

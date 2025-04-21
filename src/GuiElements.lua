@@ -15,8 +15,10 @@ local hl = m.colors.hl
 ---@field button fun( parent: Frame ): Frame
 ---@field info fun( parent: Frame ): Frame
 ---@field dropped_item fun( parent: Frame, text: string ): Frame
----@field tiny_button fun( parent: Frame, text: string?, tooltip: string?, color: table?, font-size: number?):Frame
----@field titlebar fun( parent: Frame, title: string, on_close: function )
+---@field tiny_button fun( parent: Frame, text: string?, tooltip: string?, color: table|string?, font-size: number?): Frame
+---@field resize_grip fun( parent: Frame, on_start: function, on_end: function ): Frame
+---@field dropdown fun( parent: Frame, button: string, items_data: table, on_select: function ): Frame
+---@field titlebar fun( parent: Frame, title: string, on_close: function? )
 
 local M = {}
 
@@ -316,7 +318,7 @@ function M.tiny_button( parent, text, tooltip, color, font_size )
     button:SetWidth( 18 )
     button:SetHeight( 18 )
 
-    button:SetHighlightTexture(  "Interface\\Buttons\\UI-Panel-MinimizeButton-Highlight" )
+    button:SetHighlightTexture( "Interface\\Buttons\\UI-Panel-MinimizeButton-Highlight" )
     if text == 'X' then
       button:SetNormalTexture( "Interface\\Buttons\\UI-Panel-MinimizeButton-Up" )
       button:SetPushedTexture( "Interface\\Buttons\\UI-Panel-MinimizeButton-Down" )
@@ -397,9 +399,6 @@ function M.tiny_button( parent, text, tooltip, color, font_size )
   return button
 end
 
----@param parent Frame
----@param on_start function
----@param on_end function
 function M.resize_grip( parent, on_start, on_end )
   local button = m.api.CreateFrame( "Button", nil, parent )
   button:SetWidth( 16 )
@@ -426,28 +425,21 @@ function M.resize_grip( parent, on_start, on_end )
 end
 
 function M.checkbox( parent, text, on_change )
-  local frame = m.api.CreateFrame( "Frame", nil, parent )
+  local frame = m.api.CreateFrame( "Button", nil, parent )
   frame:SetPoint( "LEFT", 5, 0 )
   frame:SetPoint( "RIGHT", -5, 0 )
-  frame:SetHeight( 14 )
+  frame:SetHeight( 16 )
   frame:SetBackdrop( {
     bgFile = "Interface/Buttons/WHITE8x8",
   } )
-
-  local function blue_hover( a )
-    frame:SetBackdropColor( 0.125, 0.624, 0.976, a )
-  end
-
-  blue_hover( 0 )
+  frame:SetBackdropColor( 0.125, 0.624, 0.976, 0 )
   frame:EnableMouse()
-  frame:SetScript( "OnEnter", function() blue_hover( .2 ) end )
-  frame:SetScript( "OnLeave", function() blue_hover( 0 ) end )
-
 
   local cb = m.api.CreateFrame( "CheckButton", nil, frame, "UICheckButtonTemplate" )
   cb:SetWidth( 14 )
   cb:SetHeight( 14 )
   cb:SetPoint( "LEFT", 2, 0 )
+  cb:EnableMouse( false )
   cb:SetNormalTexture( nil )
   cb:SetPushedTexture( nil )
   cb:SetHighlightTexture( nil )
@@ -459,27 +451,129 @@ function M.checkbox( parent, text, on_change )
   } )
   cb:SetBackdropColor( 0, 0, 0, 1 )
   cb:SetBackdropBorderColor( .2, .2, .2, 1 )
-  cb:SetScript( "OnEnter", function() blue_hover( .2 ) end )
-  cb:SetScript( "OnLeave", function() blue_hover( 0 ) end )
-  cb:SetScript( "OnClick", function()
-    if on_change then on_change( cb:GetChecked() ) end
-  end )
   frame.checkbox = cb
 
-  local label = M.create_text_in_container( "Button", frame, 1, "LEFT", text )
+  local label = M.create_text_in_container( "Frame", frame, 1, "LEFT", text )
   label.inner:SetJustifyH( "LEFT" )
   label:SetWidth( label.inner:GetWidth() )
   label:SetPoint( "LEFT", cb, "RIGHT", 5, 0 )
-  label:SetScript( "OnEnter", function() blue_hover( .2 ) end )
-  label:SetScript( "OnLeave", function() blue_hover( 0 ) end )
-  label:SetScript( "OnClick", function()
+  frame.label = label
+
+  frame:SetWidth( cb:GetWidth() + label:GetWidth() + 5 )
+  frame:SetScript( "OnClick", function()
     cb:SetChecked( not cb:GetChecked() )
     if on_change then on_change( cb:GetChecked() ) end
   end )
 
-  frame:SetWidth( cb:GetWidth() + label:GetWidth() + 5 )
-
   return frame
+end
+
+function M.dropdown( anchor_frame, button, items_data, on_select )
+  local dropdown = m.api.CreateFrame( "Frame", nil, m.api.WorldFrame )
+  dropdown:SetFrameStrata( "TOOLTIP" )
+  dropdown:SetBackdrop( {
+    bgFile = "Interface/Buttons/WHITE8x8",
+    edgeFile = "Interface/Buttons/WHITE8x8",
+    edgeSize = 0.5,
+  } )
+  dropdown:SetBackdropColor( 0, 0, 0, 1 )
+  dropdown:SetBackdropBorderColor( .2, .2, .2, 1 )
+  dropdown:EnableMouse( true )
+  dropdown:Hide()
+  dropdown.value = "dropdown"
+
+  dropdown:SetScript( "OnLeave", function()
+    if m.api.MouseIsOver( dropdown ) then
+      return
+    end
+    dropdown:Hide()
+  end )
+
+  dropdown:SetScript( "OnShow", function()
+    for v in ipairs( M.dropdowns ) do
+      if M.dropdowns[ v ] ~= dropdown then
+        M.dropdowns[ v ]:Hide()
+      end
+    end
+  end )
+
+  if not M.dropdowns then M.dropdowns = {} end
+  table.insert( M.dropdowns, dropdown )
+
+  local width = 0
+  local height = 4
+
+  dropdown.items = {}
+  for _, item_data in items_data do
+    local item
+
+    local function blue_hover( a )
+      item:SetBackdropColor( 0.125, 0.624, 0.976, a )
+    end
+
+    if item_data.type == "checkbox" then
+      item = m.GuiElements.checkbox( dropdown, item_data.text, function( is_checked )
+        if this.on_select then
+          this.on_select( this.value, is_checked )
+        end
+        if on_select then
+          on_select( this.value, is_checked )
+        end
+      end )
+      item.value = item_data.value
+
+      if item_data.checked then
+        item.checkbox:SetChecked( true )
+      end
+    else
+      item = M.create_text_in_container( "Button", dropdown, 20, nil, item_data.text, "label", "GameFontNormal" )
+      item:SetBackdrop( {
+        bgFile = "Interface/Buttons/WHITE8x8",
+      } )
+      item:SetHeight( 16 )
+      item.label:SetTextColor( 0.1254, 0.6235, 0.9764, 1 )
+      item.label:SetPoint( "LEFT", 5, 0 )
+      item:SetWidth( item.label:GetWidth() )
+      item.value = item_data.value
+
+      item:SetScript( "OnClick", function()
+        dropdown:Hide()
+        if on_select then
+          on_select( this.value, this.label:GetText() )
+        end
+      end )
+    end
+
+    blue_hover( 0 )
+    item:SetScript( "OnEnter", function() blue_hover( .2 ) end )
+    item:SetScript( "OnLeave", function() blue_hover( 0 ) end )
+    item:SetPoint( "TOPLEFT", 5, -height )
+    item:SetPoint( "RIGHT", -5, 0 )
+
+    if item:GetWidth() > width then
+      width = item:GetWidth()
+    end
+    height = height + 18
+
+    table.insert( dropdown.items, item )
+  end
+
+  dropdown:SetWidth( width + 20 )
+  dropdown:SetHeight( height + 5 )
+
+  if (anchor_frame and button) then
+    anchor_frame:SetScript( "OnMouseUp", function()
+      if arg1 == button then
+        if dropdown:IsVisible() then
+          dropdown:Hide()
+        else
+          dropdown:Show()
+        end
+      end
+    end )
+  end
+
+  return dropdown
 end
 
 ---@param parent Frame

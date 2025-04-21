@@ -163,6 +163,7 @@ function M.new( roll_controller, softres, config )
 
   local function enable_roll_popup()
     m.pretty_print( "Broadcasting ENABLE_ROLL_POPUP" )
+    broadcast( "ENABLE_ROLL_POPUP" )
   end
 
   roll_controller.subscribe( "cancel_rolling", cancel_rolling )

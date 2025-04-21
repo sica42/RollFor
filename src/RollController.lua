@@ -59,6 +59,7 @@ local hl = m.colors.hl
 ---@param rolling_popup RollingPopup
 ---@param loot_award_popup LootAwardPopup
 ---@param player_selection_frame MasterLootCandidateSelectionFrame
+---@param player_info PlayerInfo
 function M.new(
     ml_candidates,
     softres,
@@ -66,7 +67,8 @@ function M.new(
     config,
     rolling_popup,
     loot_award_popup,
-    player_selection_frame
+    player_selection_frame,
+    player_info
 )
   local roll_trackers = {} ---@type table<ItemId, RollTracker>
   local callbacks = {}
@@ -342,6 +344,32 @@ function M.new(
 
     table.insert( buttons,
       button( "AwardOther", function()
+        if m.is_shift_key_down() and config.enable_quick_award_shift() then
+          ---@type ItemCandidate
+          local candidate = m.find( player_info.get_name(), candidates, "name" )
+
+          if config.disable_quick_award_confirm() and ( config.disable_quick_award_confirm_bop() or dropped_item.bind ~= "BindOnPickup" ) then
+            award_confirmed( candidate, dropped_item )
+          else
+            show_master_loot_confirmation( candidate, dropped_item, strategy_type )
+          end
+          return
+        end
+
+        if m.is_ctrl_key_down() and config.enable_quick_award_ctrl() then
+          ---@type ItemCandidate
+          local candidate = m.find( config.quick_award_ctrl(), candidates, "name" )
+
+          if candidate and candidate.online then
+            if config.disable_quick_award_confirm() and ( config.disable_quick_award_confirm_bop() or dropped_item.bind ~= "BindOnPickup" ) then
+              award_confirmed( candidate, dropped_item )
+            else
+              show_master_loot_confirmation( candidate, dropped_item, strategy_type )
+            end
+            return
+          end
+        end
+
         ---@type MasterLootCandidate[]
         local players = m.map( candidates,
           ---@param candidate ItemCandidate
