@@ -24,6 +24,7 @@ local button_defaults = {
 ---@field get_frame fun(): table
 ---@field ping fun()
 ---@field get_anchor_point fun(): Point?
+---@field align_bottom fun()
 
 local M = m.Module.new( "RollingPopup" )
 
@@ -36,6 +37,7 @@ M.center_point = { point = "CENTER", relative_point = "CENTER", x = 0, y = 150 }
 function M.new( popup_builder, content_transformer, db, config )
   ---@type Popup?
   local popup
+  local options = {}
   db.point = db.point or M.center_point
 
   local top_padding = config.classic_look() and 14 or 8
@@ -75,9 +77,19 @@ function M.new( popup_builder, content_transformer, db, config )
       if not popup then return end
 
       if m.is_frame_out_of_bounds( popup ) then
-        db.point = M.center_point
-        popup:position( M.center_point )
+        db.point = options.point or M.center_point
+        popup:position( db.point )
+        return
+      end
 
+      if options.point then
+        local scale = m.api.UIParent:GetEffectiveScale()
+        local center_x, center_y = m.api.UIParent:GetCenter()
+        local offset_x = (popup:GetLeft() + (popup:GetWidth() / 2)) - (center_x * scale)
+        local offset_y = popup:GetBottom() - (center_y * scale)
+
+        db.point = { point = options.point.point, relative_point = options.point.relative_point, x = offset_x, y = offset_y }
+        popup:position( db.point )
         return
       end
 
@@ -87,11 +99,11 @@ function M.new( popup_builder, content_transformer, db, config )
 
     local function get_point()
       if popup and m.is_frame_out_of_bounds( popup ) then
-        return M.center_point
+        return options.point or M.center_point
       elseif db.point then
         return db.point
       else
-        return M.center_point
+        return options.point or M.center_point
       end
     end
 
@@ -109,7 +121,10 @@ function M.new( popup_builder, content_transformer, db, config )
             on_hide()
           end
         end )
-        :self_centered_anchor()
+
+    if not options.point then
+      builder:self_centered_anchor()
+    end
 
     local result = builder:build()
 
@@ -291,6 +306,13 @@ function M.new( popup_builder, content_transformer, db, config )
     return popup and popup.get_anchor_point()
   end
 
+  local function align_bottom()
+    options.point = { point = "BOTTOM", relative_point = "CENTER", x = 0, y = 0 }
+    if db.point and db.point.point ~= "BOTTOM" then
+      db.point = options.point
+    end
+  end
+
   ---@type RollingPopup
   return {
     show = show,
@@ -300,7 +322,8 @@ function M.new( popup_builder, content_transformer, db, config )
     backdrop_color = backdrop_color,
     get_frame = get_frame,
     ping = ping,
-    get_anchor_point = get_anchor_point
+    get_anchor_point = get_anchor_point,
+    align_bottom = align_bottom
   }
 end
 

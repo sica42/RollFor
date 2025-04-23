@@ -145,6 +145,7 @@ function M.new( popup_builder, awarded_loot, version_broadcast, event_bus, confi
       this.changelog.content.parent = this.changelog
 
       local changelog = {
+        { ver = "4.7.8", text = "Adjust positioning of client roll popup so it aligns to bottom" },
         { ver = "4.7.7", text = "Add key bindinds to toggle options, winners and SR import windows" },
         { ver = "4.7.7", text = "Add changelog to options window" },
         { ver = "4.7.7", text = "Add client settings to options window" },

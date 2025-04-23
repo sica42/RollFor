@@ -50,6 +50,8 @@ function M.new( ace_timer, player_info, rolling_popup, config )
   }
   setmetatable( var_names, { __index = function( _, key ) return key end } );
 
+  rolling_popup:align_bottom()
+
   local function parse_table( str )
     local function parse_inner( pos )
       local tbl = {}
@@ -220,7 +222,28 @@ function M.new( ace_timer, player_info, rolling_popup, config )
     }
 
     rolling_popup:show()
+    --local p = rolling_popup:get_anchor_point()
+    --print(m.dump(p) )
+    --if p and p.point == "TOPLEFT" then
+    if 1==3 then
+      
+      
+      --print("adjust point")
+      --local point = {
+   --     point = "BOTTOM",
+   --     relative_point = "CENTER",
+   --     x = 0,
+    --    y = -50
+    --  }
+      --rolling_popup.get_frame():position( point )
+      --p= rolling_popup:get_frame():get_anchor_point()
+      --print(m.dump(p))
+    end
+
+
     rolling_popup:refresh( rolling_popup_data )
+    --local p1,r,p2,x,y = rolling_popup:get_frame():GetPoint()
+    --print(p1 .. "," .. p2 .. "," .. y)
 
     local color = m.get_popup_border_color( tracker_data.item.quality )
     rolling_popup:border_color( color )
