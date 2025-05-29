@@ -32,6 +32,7 @@ function M.new( api )
   local function set_loot_slot( slot )
     ensure_frame()
 
+    m_frame:SetOwner( m.api.WorldFrame, "ANCHOR_NONE" )
     m_frame:ClearLines()
     m_frame:SetLootItem( slot )
   end

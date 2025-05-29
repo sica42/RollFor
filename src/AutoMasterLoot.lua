@@ -24,7 +24,7 @@ function M.new( config, boss_list, player_info )
 
     -- On Turtle, PLAYER_TARGET_CHANGED gets emitted with some float number as an argument automatically.
     -- We don't want to respond to these events.
-    local auto_target = tonumber( arg1 )
+    local auto_target = tonumber(arg1 ) and tonumber( arg1 ) ~= math.floor( arg1 )
 
     if is_a_boss and not auto_target and not m.is_master_loot() and player_info.is_leader() then
       m.api.SetLootMethod( "master", player_info.get_name() )

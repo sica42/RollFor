@@ -105,6 +105,9 @@ end
 
 local function get_similarity_predictions( present_players_who_did_not_softres, absent_players_who_did_softres, sort )
   local result = {}
+  local function capitalize( str )
+    return string.upper( string.sub( str, 1, 1 ) ) .. string.lower( string.sub( str, 2 ) )
+  end
 
   for _, player in pairs( present_players_who_did_not_softres ) do
     local predictions = {}
@@ -112,7 +115,7 @@ local function get_similarity_predictions( present_players_who_did_not_softres, 
     for _, candidate in pairs( absent_players_who_did_softres ) do
       local prediction = {
         [ "candidate" ] = candidate,
-        [ "similarity" ] = string_similarity( player, candidate ),
+        [ "similarity" ] = string_similarity( player, capitalize( candidate ) ),
         [ "levenshtein" ] = get_levenshtein( player, candidate )
       }
       table.insert( predictions, prediction )
