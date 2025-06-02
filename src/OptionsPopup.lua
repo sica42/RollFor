@@ -145,7 +145,8 @@ function M.new( popup_builder, awarded_loot, version_broadcast, event_bus, confi
       this.changelog.content.parent = this.changelog
 
       local changelog = {
-        { ver = "4.7.81", text = "Made auto name matcher not case sensitive. Tiny improvement to tooltip reader." },
+        { ver = "4.7.10", text = "/src a[nnounce] command now supports /src aw for raid warning." },
+        { ver = "4.7.9", text = "Made auto name matcher case insensitive. Tiny improvement to tooltip reader." },
         { ver = "4.7.8", text = "Adjust positioning of client roll popup so it aligns to bottom" },
         { ver = "4.7.7", text = "Add key bindings to toggle options, winners and SR import windows" },
         { ver = "4.7.7", text = "Add changelog to options window" },

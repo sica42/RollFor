@@ -595,23 +595,28 @@ local function on_softres_command( args )
 end
 
 local function on_check_softres_command( args )
-  if args == "announce" or args == "a" then
+  if string.find( args, "^a" ) then
+    local use_raid_warning = string.find( args, "w" ) and true or false
     local result, players = M.softres_check.check_softres( true )
 
     if result == M.softres_check.ResultType.SomeoneIsNotSoftRessing and m.raid_id then
-      local msg = string.format( "https://raidres.fly.dev/res/%s - ", m.raid_id )
+      local msg = string.format( "https://raidres.fly.dev/res/%s", m.raid_id )
+      if getn( players ) < 10 then
+        msg = msg .. " - "
+        for i = 1, getn( players ) do
+          local separator = i == 1 and "" or ", "
+          local player_name = players[ i ].name
+          local grouped_player = M.group_roster.find_player( player_name )
+          local next = grouped_player and m.colorize_player_by_class( grouped_player.name, grouped_player.class ) or player_name
 
-      for i = 1, getn( players ) do
-        local separator = i == 1 and "" or ", "
-        local player_name = players[ i ].name
-        local grouped_player = M.group_roster.find_player( player_name )
-        local next = grouped_player and m.colorize_player_by_class( grouped_player.name, grouped_player.class ) or player_name
-
-        msg = msg .. separator .. next
+          msg = msg .. separator .. next
+        end
+        msg = string.gsub(msg, "^(.*),%s*(.*)$", "%1 and %2")
+        msg = msg .. " missing SR"
       end
-      msg = string.gsub(msg, "^(.*),%s*(.*)$", "%1 and %2")
-      msg = msg .. " missing SR"
-      M.chat.announce( msg, false )
+      M.chat.announce( msg, use_raid_warning )
+    else
+      m.pretty_print("No soft-res items found.")
     end
   else
     M.softres_check.check_softres()
