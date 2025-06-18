@@ -57,6 +57,8 @@ local function on_raid_trade( giver_name, recipient_name, item_name )
 end
 
 local function trade_complete_callback( recipient_name, items_given, items_received )
+  if not M.api().IsInGroup() then return end
+
   for i = 1, getn( items_given ) do
     local item = items_given[ i ]
     if item then

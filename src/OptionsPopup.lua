@@ -145,6 +145,7 @@ function M.new( popup_builder, awarded_loot, version_broadcast, event_bus, confi
       this.changelog.content.parent = this.changelog
 
       local changelog = {
+        { ver = "4.7.12", text = "Fix trade bug outside raid. Fix minor bug in options window." },
         { ver = "4.7.11", text = "Fix bug in winners popup." },
         { ver = "4.7.10", text = "/src a[nnounce] command now supports /src aw for raid warning." },
         { ver = "4.7.9", text = "Made auto name matcher case insensitive. Tiny improvement to tooltip reader." },

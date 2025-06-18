@@ -307,7 +307,7 @@ function M.tiny_button( parent, text, tooltip, color, font_size )
   local button = m.api.CreateFrame( "Button", nil, parent )
   if not text then text = 'X' end
 
-  if type( color ) == "string" and color ~= "" then
+  if type( color ) == "string" and color and color ~= "" then
     local str_color = color
     color = {}
     color.r, color.g, color.b, color.a = m.hex_to_rgba( str_color )
