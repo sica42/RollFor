@@ -51,6 +51,10 @@ function M.new( api, db, manage_softres_fn, winners_popup_fn, options_popup_fn, 
     end
   end
 
+  local function create()
+    local frame = api().CreateFrame( "Button", "RollForMinimapButton", api().Minimap )
+    local was_dragging = false
+
     function frame.OnClick( self )
       if m.vanilla then self = this end
 
