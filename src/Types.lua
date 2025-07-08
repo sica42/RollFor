@@ -183,13 +183,15 @@ end
 ---@field online boolean
 ---@field rolls number
 ---@field sr_plus number
+---@field plus_ones number
 ---@field type "RollingPlayer"
 
 ---@alias MakeRollingPlayerFn fun(
 ---  name: string,
 ---  class: PlayerClass,
 ---  online: boolean,
----  rolls: number ): RollingPlayer
+---  rolls: number,
+---  plus_ones: number ): RollingPlayer
 
 ---@type MakeRollingPlayerFn
 ---@param name string
@@ -197,13 +199,14 @@ end
 ---@param online boolean
 ---@param rolls number
 ---@return RollingPlayer
-function M.make_rolling_player( name, class, online, rolls )
+function M.make_rolling_player( name, class, online, rolls, plus_ones )
   return {
     name = name,
     class = class,
     online = online,
     rolls = rolls,
-    type = PlayerType.RollingPlayer
+    type = PlayerType.RollingPlayer,
+    plus_ones = plus_ones
   }
 end
 

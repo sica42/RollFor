@@ -14,7 +14,7 @@ local hl = m.colors.hl
 
 ---@class RollControllerFacade
 ---@field roll_was_ignored fun( player_name: string, player_class: string?, roll_type: RollType, roll: number, reason: string )
----@field roll_was_accepted fun( player_name: string, player_class: string, roll_type: RollType, roll: number )
+---@field roll_was_accepted fun( player_name: string, player_class: string, roll_type: RollType, roll: number, plus_ones: number )
 ---@field tick fun( seconds_left: number )
 ---@field winners_found fun( item: Item, item_count: number, winners: Winner[], strategy: RollingStrategyType )
 ---@field finish fun()
@@ -857,10 +857,10 @@ function M.new(
     preview_sr_items_not_equal_to_item_count( soft_ressers, item, item_count, dropped_item, buttons, candidate_count, candidates )
   end
 
-  local function on_roll( player_name, player_class, roll_type, roll )
+  local function on_roll( player_name, player_class, roll_type, roll, plus_ones )
     M.debug.add( string.format( "on_roll( %s, %s, %s, %s )", player_name, player_class, roll_type, roll ) )
     local roll_tracker = get_roll_tracker( currently_displayed_item and currently_displayed_item.id )
-    roll_tracker.add( player_name, player_class, roll_type, roll )
+    roll_tracker.add( player_name, player_class, roll_type, roll, plus_ones )
 
     local data, current_iteration = roll_tracker.get()
     local strategy_type = current_iteration and current_iteration.rolling_strategy
@@ -870,7 +870,8 @@ function M.new(
         player_name = player_name,
         player_class = player_class,
         roll_type = roll_type,
-        roll = roll
+        plus_ones = plus_ones,
+        roll = roll,
       } )
     end
 

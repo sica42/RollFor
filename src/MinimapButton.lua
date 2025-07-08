@@ -104,6 +104,7 @@ function M.new( api, db, manage_softres_fn, winners_popup_fn, options_popup_fn, 
         api().GameTooltip:AddLine( string.format( "%s - %s", hl( "/rfr" ), white( "reset loot announce" ) ) )
         api().GameTooltip:AddLine( string.format( "%s - %s", hl( "/cr" ), white( "cancel rolling in progress" ) ) )
         api().GameTooltip:AddLine( string.format( "%s - %s", hl( "/fr" ), white( "finish rolling early" ) ) )
+        api().GameTooltip:AddLine( string.format( "%s - %s", hl( "/pl" ), white( "List plus ones" ) ) )
         api().GameTooltip:AddLine( string.format( "%s - %s", hl( "/rf config" ), white( "show configuration" ) ) )
         api().GameTooltip:AddLine( string.format( "%s - %s", hl( "/rf config help" ), white( "show configuration help" ) ) )
         api().GameTooltip:AddLine( " " )

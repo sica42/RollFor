@@ -24,6 +24,7 @@ function M.new( db, event_bus )
   local callbacks = {}
   local toggles = {
     [ "auto_loot" ] = { cmd = "auto-loot", display = "Auto-loot", help = "toggle auto-loot" },
+    [ "plus_ones"] = { cmd = "plus-ones", display = "Plus-ones", help = "Toggle +1 handling for main-spec rolls." },
     [ "superwow_auto_loot_coins" ] = { cmd = "superwow-auto-loot-coins", display = "Auto-loot coins with SuperWoW", help = "toggle auto-loot coins with SuperWoW" },
     [ "auto_loot_messages" ] = { cmd = "auto-loot-messages", display = "Auto-loot messages", help = "toggle auto-loot messages" },
     [ "auto_loot_announce" ] = { cmd = "auto-loot-announce", display = "Announce auto-looted items", help = "toggle announcements of auto-loot items" },
@@ -65,6 +66,7 @@ function M.new( db, event_bus )
     if db.master_loot_frame_rows == nil then db.master_loot_frame_rows = 5 end
     if db.auto_master_loot == nil then db.auto_master_loot = true end
     if db.auto_loot == nil then db.auto_loot = true end
+    if db.plus_ones == nil then db.plus_ones = false end
     if db.auto_loot_announce == nil then db.auto_loot_announce = true end
     if db.loot_frame_cursor == nil then db.loot_frame_cursor = false end
     if db.client_show_roll_popup == nil then db.client_show_roll_popup = "Off" end

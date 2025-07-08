@@ -52,8 +52,9 @@ local top_padding = 11
 ---@field transform fun( data: RollingPopupData ): table
 
 ---@param config Config
+---@param awarded_loot AwardedLoot
 ---@diagnostic disable-next-line: unused-local
-function M.new( config )
+function M.new( config, awarded_loot )
   ---@param on_click fun()
   local function award_winner_button( on_click )
     return { type = "award_button", label = "Award", width = 90, on_click = on_click, padding = 6 }
@@ -105,10 +106,11 @@ function M.new( config )
       table.insert( result, {
         type = "roll",
         roll_type = roll.roll_type,
-        player_name = roll.player_name,
+        plus_ones = roll.plus_ones,
+        player_name =  roll.player_name,
         player_class = roll.player_class,
         roll = roll.roll,
-        padding = i == 1 and top_padding or nil
+        padding = i == 1 and top_padding or nil,
       } )
     end
   end

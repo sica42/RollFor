@@ -151,13 +151,14 @@ function M.new( roll_controller, softres, config )
     } )
   end
 
-  ---@param data { player_name: PlayerName, player_class: PlayerClass, roll_type: RollType, roll: Roll }
+  ---@param data { player_name: PlayerName, player_class: PlayerClass, roll_type: RollType, roll: Roll, plus_ones: number }
   local function on_roll( data )
     broadcast( "ROLL", {
       pn = data.player_name,
       pc = data.player_class,
       rt = data.roll_type,
-      r = data.roll
+      r = data.roll,
+      pl = data.plus_ones
     } )
   end
 

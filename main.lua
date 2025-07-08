@@ -11,6 +11,7 @@ local getn = m.getn
 local info = m.pretty_print
 local hl = m.colors.highlight
 local RollSlashCommand = m.Types.RollSlashCommand
+local RollType = m.Types.RollType
 
 _RollFor = M
 BINDING_HEADER_ROLLFOR = "RollFor"
@@ -234,7 +235,7 @@ local function create_components()
   local rolling_popup_db = db( "rolling_popup" )
 
   ---@type RollingPopupContentTransformer
-  local rolling_popup_content_transformer = m.RollingPopupContentTransformer.new( M.config )
+  local rolling_popup_content_transformer = m.RollingPopupContentTransformer.new( M.config, M.awarded_loot )
 
   ---@type RollingPopup
   M.rolling_popup = m.RollingPopup.new(
@@ -376,7 +377,8 @@ local function create_components()
     M.winner_tracker,
     M.config,
     M.softres,
-    M.player_info
+    M.player_info,
+    M.awarded_loot
   )
 
   ---@type RollingLogic
@@ -739,6 +741,20 @@ local function on_reset_dropped_loot_announce_command()
   M.dropped_loot_announce.reset()
 end
 
+local function list_plus_ones_command()
+  for _, player in ipairs(M.group_roster.get_all_players_in_my_group()) do
+    local plus_ones = getn(m.filter(M.awarded_loot.get_winners(), (function (a) 
+          return a ~= nil and a.player_name == player.name and a.roll_type == RollType.MainSpec
+        end)))
+    if plus_ones > 0 then 
+      local ms_loot_player = m.filter(M.awarded_loot.get_winners(),(function (a) return a ~= nil and a.player_name == player.name and a.roll_type == RollType.MainSpec end))
+      local item_list = table.concat(m.map(ms_loot_player, (function (a) return a.item_link end)), " ")
+      local player_name = m.colorize_player_by_class( player.name, player.class ) or m.colors.grey( player.name )
+      M.chat.info( player_name .. m.colors.green(" MS +" .. plus_ones ).. ": " .. item_list)
+    end
+  end
+end
+
 local function setup_slash_commands()
   -- Roll For commands
   SLASH_RF1 = RollSlashCommand.NormalRoll
@@ -778,6 +794,10 @@ local function setup_slash_commands()
   SLASH_RFT1 = "/rft"
   M.api().SlashCmdList[ "RFT" ] = M.sandbox.run
 
+
+  SLASH_PL1 = "/pl"
+  M.api().SlashCmdList[ "PL"] = list_plus_ones_command
+
   --SLASH_DROPPED1 = "/DROPPED"
   --M.api().SlashCmdList[ "DROPPED" ] = simulate_loot_dropped
 end
@@ -789,6 +809,8 @@ function M.on_player_login()
   setup_slash_commands()
 
   info( string.format( "Loaded (%s).", hl( string.format( "v%s", version.str ) ) ) )
+
+
 
   M.version_broadcast.broadcast()
   M.import_encoded_softres_data( M.softres_db.data )
