@@ -310,6 +310,7 @@ function M.new( popup_builder, awarded_loot, version_broadcast, event_bus, confi
     e.create_gui_entry( "Rolling", frames, function()
       e.create_config( "Roll settings", nil, "header" )
       e.create_config( "Default rolling time", "default_rolling_time_seconds", "number|min=4|max=15", "Value must be between 4 and 15 seconds." )
+      e.create_config( "Handle plus ones", "plus_ones", "checkbox", "Deprioritize people with one or more +1's on MS rolls", notify )
       e.create_config( "Rolling popup lock", "rolling_popup_lock", "checkbox", "Locks the rolling popup position.", notify )
       e.create_config( "Show Raid roll again button", "raid_roll_again", "checkbox", nil, notify )
       e.create_config( "MainSpec rolling threshold", "ms_roll_threshold", "number" )

@@ -111,6 +111,8 @@ function M.new( api, db, manage_softres_fn, winners_popup_fn, options_popup_fn, 
         api().GameTooltip:AddLine( string.format( "%s - %s", hl( "/rf config help" ), white( "show configuration help" ) ) )
         api().GameTooltip:AddLine( " " )
         api().GameTooltip:AddLine( "Click to manage softres." )
+        api().GameTooltip:AddLine( "Ctlr+Click for settings." )
+        api().GameTooltip:AddLine( "Shift+Click for winner overview." )
 
         if icon_color == ColorType.Green then
           api().GameTooltip:AddLine( " " )
