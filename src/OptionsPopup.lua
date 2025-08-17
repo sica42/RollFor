@@ -75,7 +75,7 @@ function M.new( popup_builder, awarded_loot, version_broadcast, event_bus, confi
     local title_bar = m.GuiElements.titlebar( frame, blue( "RollFor" ) )
     title_bar.title:SetJustifyH( "LEFT" )
 
-    local help_btn = m.GuiElements.tiny_button( frame, "?", "Click this icon and then hover over a field for more information.", "#E6CC40" )
+    local help_btn = m.GuiElements.tiny_button(frame, "?", "Click this icon and then hover over a field for more information.", {r=230/255, g=204/255, b=64/255})
     help_btn:SetPoint( "RIGHT", title_bar.close_btn, "LEFT", m.classic and -4 or -5, 0 )
     help_btn:SetScript( "OnClick", function()
       this.active = not this.active
