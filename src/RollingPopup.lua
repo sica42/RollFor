@@ -6,6 +6,7 @@ if m.RollingPopup then return end
 local getn = m.getn
 local c = m.colorize_player_by_class
 local blue = m.colors.blue
+local RollType = m.Types.RollType
 
 local button_defaults = {
   width = 80,
@@ -180,8 +181,17 @@ function M.new( popup_builder, content_transformer, db, config )
         elseif type == "icon_text" then
           frame:SetText( v.value )
         elseif type == "roll" then
-          frame.roll_type:SetText( m.roll_type_color( v.roll_type, m.roll_type_abbrev( v.roll_type ) ) )
-          frame.player_name:SetText( c( v.player_name, v.player_class ) )
+          local roll_type_text = m.roll_type_abbrev( v.roll_type )
+          if v.roll_type == RollType.MainSpec and v.plus_ones > 0 then
+            roll_type_text = roll_type_text .. " +" .. v.plus_ones
+          end
+          frame.roll_type:SetText( m.roll_type_color( v.roll_type, roll_type_text ) )
+
+          local show_player_roles = config.show_player_roles()
+          frame:SetWidth( config.show_player_roles() and 200 or 170 )
+
+          local player_role = show_player_roles and v.player_role and string.format( " (%s)", string.gsub( v.player_role, v.player_class, "" ) ) or ""
+          frame.player_name:SetText( string.format( "%s%s", c( v.player_name, v.player_class ), player_role ) )
 
           if v.roll then
             frame.roll:SetText( blue( v.roll ) )

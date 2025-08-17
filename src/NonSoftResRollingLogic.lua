@@ -66,6 +66,9 @@ function M.new(
 
   local function sort_rolls()
     local f = function( a, b )
+      if a.roll_type == RollType.MainSpec and a.player.plus_ones ~= b.player.plus_ones then
+        return a.player.plus_ones < b.player.plus_ones
+      end
       if a.roll == b.roll then
         return a.player.name < b.player.name
       else
@@ -135,12 +138,14 @@ function M.new(
         local result = {}
         local last_roll
         local last_type
+        local last_plus_ones
 
         for _, roll in ipairs( all_rolls ) do
-          if not last_roll or last_roll ~= roll.roll or last_type ~= roll.roll_type then
+          if not last_roll or last_roll ~= roll.roll or last_type ~= roll.roll_type or roll.roll_type == RollType.MainSpec and last_plus_ones ~= roll.player.plus_ones  then
             table.insert( result, { roll } )
             last_roll = roll.roll
             last_type = roll.roll_type
+            last_plus_ones = roll.player.plus_ones
           else
             table.insert( result[ getn( result ) ], roll )
           end
@@ -186,7 +191,7 @@ function M.new(
     player.rolls = player.rolls - 1
     local t = ms_roll and mainspec_rolls or os_roll and offspec_rolls or tmog_rolls
     table.insert( t, make_roll( player, roll_type, roll ) )
-    controller.roll_was_accepted( player.name, player.class, roll_type, roll )
+    controller.roll_was_accepted( player.name, player.class, roll_type, roll, player.plus_ones )
 
     if have_all_rolls_been_exhausted() then find_winner() end
   end

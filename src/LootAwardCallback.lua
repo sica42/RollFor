@@ -4,6 +4,7 @@ local m = RollFor
 if m.LootAwardCallback then return end
 
 local getn = m.getn
+local RollType = m.Types.RollType
 
 local M = m.Module.new( "LootAwardCallback" )
 
@@ -15,7 +16,9 @@ local M = m.Module.new( "LootAwardCallback" )
 ---@param winner_tracker WinnerTracker
 ---@param group_roster GroupRoster
 ---@param softres GroupAwareSoftRes
-function M.new( awarded_loot, roll_controller, winner_tracker, group_roster, softres )
+---@param confirm_popup ConfirmPopup
+---@param config Config
+function M.new( awarded_loot, roll_controller, winner_tracker, group_roster, softres, confirm_popup, config )
   ---@param item_id number
   ---@param item_link string
   ---@param player_name string
@@ -43,16 +46,17 @@ function M.new( awarded_loot, roll_controller, winner_tracker, group_roster, sof
       class = player and player.class or nil
     end
 
-    awarded_loot.award(
-      player_name,
-      item_id,
-      roll_data,
-      rolling_strategy,
-      item_link,
-      player_class or class,
-      sr_player and sr_player.sr_plus
-    )
-
+      awarded_loot.award(
+        player_name,
+        item_id,
+        roll_data,
+        rolling_strategy,
+        item_link,
+        player_class or class,
+        sr_player and sr_player.sr_plus,
+        false
+      )
+  
     if is_trade then return end
 
     if player_class then
@@ -62,8 +66,22 @@ function M.new( awarded_loot, roll_controller, winner_tracker, group_roster, sof
     end
 
     winner_tracker.untrack( player_name, item_link )
-  end
 
+    local function on_confirm_plus_one(plus_one)
+      awarded_loot.update_item(getn(awarded_loot.get_winners()), { plus_one = plus_one })
+    end
+
+    if config.handle_plus_ones() and roll_data ~= nil and roll_data.roll_type == RollType.MainSpec then
+      if config.plus_one_prompt() then
+        local colorized_player_name = m.colorize_player_by_class(player_name, player_class or class) or m.colors.grey( player_name )
+        confirm_popup.show( { "Should " .. colorized_player_name .. " get a +1 for " .. item_link .. "?" }, on_confirm_plus_one)
+      else
+        on_confirm_plus_one(true)
+      end
+    else
+      on_confirm_plus_one(false)
+    end
+  end
   ---@type LootAwardCallback
   return {
     on_loot_awarded = on_loot_awarded,
@@ -72,3 +90,5 @@ end
 
 m.LootAwardCallback = M
 return M
+
+

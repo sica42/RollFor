@@ -8,7 +8,7 @@ local M = m.Module.new( "AwardedLoot" )
 local getn = m.getn
 
 ---@class AwardedLoot
----@field award fun( player_name: string, item_id: number, roll_data: RollData?, rolling_strategy: RollingStrategyType?, item_link: ItemLink?, player_class: PlayerClass?, sr_plus: number? )
+---@field award fun( player_name: string, item_id: number, roll_data: RollData?, rolling_strategy: RollingStrategyType?, item_link: ItemLink?, player_class: PlayerClass?, sr_plus: number?, plus_one: boolean? )
 ---@field unaward fun( player_name: string, item_id: number )
 ---@field get_winners fun()
 ---@field update_item fun( index: number, data: table )
@@ -31,7 +31,8 @@ function M.new( db, group_roster, config )
   ---@param item_link ItemLink?
   ---@param player_class PlayerClass?
   ---@param sr_plus number?
-  local function award( player_name, item_id, roll_data, rolling_strategy, item_link, player_class, sr_plus )
+  ---@param plus_one boolean?
+  local function award( player_name, item_id, roll_data, rolling_strategy, item_link, player_class, sr_plus, plus_one )
     M.debug.add( "award" )
     if not player_class then
       if roll_data and roll_data.player_class then
@@ -55,7 +56,8 @@ function M.new( db, group_roster, config )
       rolling_strategy = rolling_strategy,
       roll_type = roll_data and roll_data.roll_type,
       winning_roll = roll_data and roll_data.roll,
-      sr_plus = sr_plus
+      sr_plus = sr_plus,
+      plus_one = plus_one
     } )
   end
 

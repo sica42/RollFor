@@ -143,7 +143,7 @@ function M.new( chat, players, item, item_count, on_rolling_finished, roll_type,
 
     player.rolls = player.rolls - 1
     table.insert( rolls, make_roll( player, roll_type, roll ) )
-    controller.roll_was_accepted( roller.name, player.class, roll_type, roll )
+    controller.roll_was_accepted( roller.name, player.class, roll_type, roll, player.plus_ones )
 
     if have_all_rolls_been_exhausted() then find_winner() end
   end

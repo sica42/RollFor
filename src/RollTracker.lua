@@ -18,7 +18,9 @@ local S = m.Types.RollingStatus
 ---@class RollData
 ---@field player_name string
 ---@field player_class string
+---@field player_role string
 ---@field roll_type RollType
+---@field plus_ones number
 ---@field roll number?
 
 ---@class RollIteration
@@ -52,7 +54,7 @@ local S = m.Types.RollingStatus
 ---@field rolling_canceled fun()
 ---@field tie fun( required_rolling_players: RollingPlayer[], roll_type: RollType, roll: number )
 ---@field tie_start fun()
----@field add fun( player_name: string, player_class: string, roll_type: RollType, roll: number )
+---@field add fun( player_name: string, player_class: string, player_role: string, roll_type: RollType, roll: number, plus_ones: number )
 ---@field add_ignored fun( player_name: string, roll_type: RollType, roll: number, reason: string )
 ---@field get fun(): RollTrackerData, RollIteration
 ---@field tick fun( seconds_left: number )
@@ -89,7 +91,12 @@ function M.new( item_on_roll )
 
   local function sort( rolls )
     table.sort( rolls, function( a, b )
-      if a.roll_type ~= b.roll_type then return a.roll_type < b.roll_type end
+      if a.roll_type ~= b.roll_type then 
+        return a.roll_type < b.roll_type
+      end
+      if a.roll_type == RT.MainSpec and a.plus_ones ~= b.plus_ones then
+        return a.plus_ones < b.plus_ones
+      end
 
       if a.roll and b.roll then
         if a.roll == b.roll then
@@ -111,12 +118,12 @@ function M.new( item_on_roll )
     end )
   end
 
-  local function add( player_name, player_class, roll_type, roll )
+  local function add( player_name, player_class, player_role, roll_type, roll, plus_ones )
     if current_iteration == 0 then return end
     M.debug.add( "add" )
 
     ---@type RollData
-    local data = { player_name = player_name, player_class = player_class, roll_type = roll_type, roll = roll }
+    local data = { player_name = player_name, player_class = player_class, player_role = player_role, roll_type = roll_type, roll = roll, plus_ones = plus_ones }
     local iteration = iterations[ current_iteration ]
 
     if roll and (iteration.rolling_strategy == RS.SoftResRoll or iteration.rolling_strategy == RS.TieRoll) then
@@ -135,7 +142,7 @@ function M.new( item_on_roll )
     for _, player in ipairs( players ) do
       for _ = 1, player.rolls do
         ---@type RollData
-        local data = { player_name = player.name, player_class = player.class, roll_type = RT.SoftRes }
+        local data = { player_name = player.name, player_class = player.class, player_role = player.role, roll_type = RT.SoftRes, plus_ones = player.plus_ones }
         table.insert( result, data )
       end
     end
@@ -166,7 +173,7 @@ function M.new( item_on_roll )
 
       for _, player in ipairs( soft_ressers or {} ) do
         for _ = 1, player.rolls or 1 do
-          add( player.name, player.class, RT.SoftRes )
+          add( player.name, player.class, player.role, RT.SoftRes, player.plus_ones )
         end
       end
     end
@@ -200,7 +207,7 @@ function M.new( item_on_roll )
 
     for _, player in ipairs( required_rolling_players or {} ) do
       for _ = 1, player.rolls or 1 do
-        add( player.name, player.class, rolling_strategy == RS.SoftResRoll and RT.SoftRes or RS.TieRoll )
+        add( player.name, player.class, player.role, rolling_strategy == RS.SoftResRoll and RT.SoftRes or RS.TieRoll, player.plus_ones )
       end
     end
   end
@@ -245,7 +252,7 @@ function M.new( item_on_roll )
     } )
 
     for _, player in ipairs( players or {} ) do
-      add( player.name, player.class, roll_type )
+      add( player.name, player.class, player.role, roll_type, nil, player.plus_ones )
     end
   end
 

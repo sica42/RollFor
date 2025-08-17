@@ -104,10 +104,15 @@ function M.new( api, db, manage_softres_fn, winners_popup_fn, options_popup_fn, 
         api().GameTooltip:AddLine( string.format( "%s - %s", hl( "/rfr" ), white( "reset loot announce" ) ) )
         api().GameTooltip:AddLine( string.format( "%s - %s", hl( "/cr" ), white( "cancel rolling in progress" ) ) )
         api().GameTooltip:AddLine( string.format( "%s - %s", hl( "/fr" ), white( "finish rolling early" ) ) )
+        api().GameTooltip:AddLine( string.format( "%s - %s", hl( "/pl" ), white( "List +1's" ) ) )
+        api().GameTooltip:AddLine( string.format( "%s %s %s - %s", hl( "/pl add " ), grey( "<player>" ), grey( "<item>" ), white( "Add item to players +1's" ) ) )
+        api().GameTooltip:AddLine( string.format( "%s %s %s - %s", hl( "/pl rm" ), grey( "<player>" ), grey( "<item>" ), white( "Remove item from players +1's" ) ) )
         api().GameTooltip:AddLine( string.format( "%s - %s", hl( "/rf config" ), white( "show configuration" ) ) )
         api().GameTooltip:AddLine( string.format( "%s - %s", hl( "/rf config help" ), white( "show configuration help" ) ) )
         api().GameTooltip:AddLine( " " )
         api().GameTooltip:AddLine( "Click to manage softres." )
+        api().GameTooltip:AddLine( "Ctlr+Click for settings." )
+        api().GameTooltip:AddLine( "Shift+Click for winner overview." )
 
         if icon_color == ColorType.Green then
           api().GameTooltip:AddLine( " " )

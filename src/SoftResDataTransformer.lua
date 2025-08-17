@@ -24,6 +24,7 @@ local make_roller = m.Types.make_roller
 
 ---@class RaidResSoftResEntry
 ---@field name string -- Player name.
+---@field role string
 ---@field items RaidResSoftRessedItem[]
 
 ---@class RaidResSoftRessedItem
@@ -62,6 +63,7 @@ function M.transform( data )
 
   for _, sr in ipairs( soft_reserves or {} ) do
     local roller_name = sr.name
+    local roller_role = sr.role
     local item_ids = sr.items or {}
 
     for _, item in ipairs( item_ids ) do
@@ -78,6 +80,7 @@ function M.transform( data )
         if not roller then
           roller = make_roller( roller_name, 1 )
           roller.sr_plus = tonumber( item.sr_plus )
+          roller.role = roller_role
           table.insert( sr_result[ item_id ].rollers, roller )
         else
           roller.rolls = roller.rolls + 1

@@ -24,6 +24,8 @@ function M.new( db, event_bus )
   local callbacks = {}
   local toggles = {
     [ "auto_loot" ] = { cmd = "auto-loot", display = "Auto-loot", help = "toggle auto-loot" },
+    [ "handle_plus_ones"] = { cmd = "Handle-plus-ones", display = "handle-plus-ones", help = "Toggle +1 handling for main-spec rolls." },
+    [ "plus_one_prompt"] = { cmd = "plus-one-prompt", display = "Plus-one-prompt", help = "Prompt the user for whether the award should give a +1" },
     [ "superwow_auto_loot_coins" ] = { cmd = "superwow-auto-loot-coins", display = "Auto-loot coins with SuperWoW", help = "toggle auto-loot coins with SuperWoW" },
     [ "auto_loot_messages" ] = { cmd = "auto-loot-messages", display = "Auto-loot messages", help = "toggle auto-loot messages" },
     [ "auto_loot_announce" ] = { cmd = "auto-loot-announce", display = "Announce auto-looted items", help = "toggle announcements of auto-loot items" },
@@ -35,6 +37,7 @@ function M.new( db, event_bus )
     [ "auto_master_loot" ] = { cmd = "auto-master-loot", display = "Auto master loot", help = "toggle auto master loot" },
     [ "rolling_popup_lock" ] = { cmd = "rolling-popup-lock", display = "Rolling popup lock", help = "toggle rolling popup lock" },
     [ "raid_roll_again" ] = { cmd = "raid-roll-again", display = string.format( "%s button", hl( "Raid roll again" ) ), help = string.format( "toggle %s button", hl( "Raid roll again" ) ) },
+    [ "show_player_roles"] = { cmd = "show-player-roles", display = "Show player roles", help="toggle player roles showing in rolling popup" },
     [ "loot_frame_cursor" ] = { cmd = "loot-frame-cursor", display = "Display loot frame at cursor position", help = "toggle displaying loot frame at cursor position" },
     [ "classic_look" ] = { cmd = "classic-look", display = "Classic look", help = "toggle classic look", requires_reload = true },
     [ "client_auto_hide_popup" ] = { cmd = "auto-hide", display = "Hide popup when rolling is complete", help = "toggle hiding of roll popup", client = true },
@@ -65,6 +68,8 @@ function M.new( db, event_bus )
     if db.master_loot_frame_rows == nil then db.master_loot_frame_rows = 5 end
     if db.auto_master_loot == nil then db.auto_master_loot = true end
     if db.auto_loot == nil then db.auto_loot = true end
+    if db.handle_plus_ones == nil then db.handle_plus_ones = false end
+    if db.plus_one_prompt == nil then db.plus_one_prompt = false end
     if db.auto_loot_announce == nil then db.auto_loot_announce = true end
     if db.loot_frame_cursor == nil then db.loot_frame_cursor = false end
     if db.client_show_roll_popup == nil then db.client_show_roll_popup = "Off" end

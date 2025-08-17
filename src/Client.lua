@@ -38,6 +38,7 @@ function M.new( ace_timer, player_info, rolling_popup, config )
     pn = "player_name",
     pc = "player_class",
     rt = "roll_type",
+    pl = "plus_ones",
     r = "roll",
     n = "name",
     c = "class",
@@ -307,7 +308,7 @@ function M.new( ace_timer, player_info, rolling_popup, config )
           return
         end
 
-        roll_tracker.add( data.player_name, data.player_class, data.roll_type, data.roll )
+        roll_tracker.add( data.player_name, data.player_class, data.player_role, data.roll_type, data.roll, data.plus_ones or 0 )
         if data.player_name == player_info.get_name() then
           player_can_roll = false
         end

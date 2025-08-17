@@ -4,6 +4,7 @@ local m = RollFor
 if m.RollingStrategyFactory then return end
 
 local M = {}
+local RollType = m.Types.RollType
 
 local getn = m.getn
 ---@type MakeRollingPlayerFn
@@ -43,7 +44,8 @@ function M.new(
     winner_tracker,
     config,
     softres,
-    player_info
+    player_info,
+    awarded_loot
 )
   ---@param item Item
   ---@param item_count number
@@ -54,7 +56,13 @@ function M.new(
   local function normal_roll( item, item_count, message, seconds, on_rolling_finished, roll_controller_facade )
     local players = group_roster.get_all_players_in_my_group()
     local rollers = m.map( players, function( player )
-      return make_rolling_player( player.name, player.class, player.online, 1 )
+      local plus_ones = 0
+      if config.handle_plus_ones() then
+        plus_ones = getn(m.filter(awarded_loot.get_winners(), (function (p) 
+          return p ~= nil and p.player_name == player.name and p.plus_one
+        end)))
+      end
+      return make_rolling_player( player.name, player.class, player.role, player.online, 1, plus_ones )
     end )
 
     return m.NonSoftResRollingLogic.new(
@@ -133,7 +141,7 @@ function M.new(
     local rollers = m.map( players,
       ---@param player RollingPlayer
       function( player )
-        return make_rolling_player( player.name, player.class, player.online, 1 )
+        return make_rolling_player( player.name, player.class, player.role, player.online, 1, player.plus_ones )
       end
     )
 

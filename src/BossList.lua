@@ -53,6 +53,9 @@ M.zones    = {
     "Ossirian the Unscarred"
   },
   [ "Molten Core" ] = {
+    "Incindis",
+    "Basalthar",
+    "Sorcerer-Thane Thaurissan",
     "Lucifron",
     "Magmadar",
     "Gehennas",
@@ -77,7 +80,7 @@ M.zones    = {
   [ "Onyxia's Lair" ] = {
     "Onyxia"
   },
-  [ "Temple of Ahn'Qiraj" ] = {
+  [ "Ahn'Qiraj" ] = {
     "The Prophet Skeram",
     "Vem",
     "Lord Kri",

@@ -145,6 +145,9 @@ function M.new( popup_builder, awarded_loot, version_broadcast, event_bus, confi
       this.changelog.content.parent = this.changelog
 
       local changelog = {
+        { ver = "4.8.0", text = "Added +1 handling" },
+        { ver = "4.7.13", text = "Add option to show player roles in rolling popup." },
+        { ver = "4.7.13", text = "Fix wrong zone name for Temple of Ahn'Qiraj." },
         { ver = "4.7.12", text = "Fix trade bug outside raid. Fix minor bug in options window." },
         { ver = "4.7.11", text = "Fix bug in winners popup." },
         { ver = "4.7.10", text = "/src a[nnounce] command now supports /src aw for raid warning." },
@@ -310,8 +313,20 @@ function M.new( popup_builder, awarded_loot, version_broadcast, event_bus, confi
     e.create_gui_entry( "Rolling", frames, function()
       e.create_config( "Roll settings", nil, "header" )
       e.create_config( "Default rolling time", "default_rolling_time_seconds", "number|min=4|max=15", "Value must be between 4 and 15 seconds." )
+      this.handle_plus_ones = e.create_config( "Handle +1's on MS rolls", "handle_plus_ones", "checkbox", nil, function( value )
+        if value then
+          this:GetParent():GetParent().plus_one_prompt.input.enable()
+        else
+          this:GetParent():GetParent().plus_one_prompt.input.disable()
+        end
+      end )
+      this.plus_one_prompt = e.create_config("Always prompt for +1's", "plus_one_prompt", "checkbox" )
+      if not this.handle_plus_ones.input:GetChecked() then
+        this.plus_one_prompt.input.disable()
+      end
       e.create_config( "Rolling popup lock", "rolling_popup_lock", "checkbox", "Locks the rolling popup position.", notify )
       e.create_config( "Show Raid roll again button", "raid_roll_again", "checkbox", nil, notify )
+      e.create_config( "Show player roles", "show_player_roles", "checkbox", "Show player roles in rolling popup" )
       e.create_config( "MainSpec rolling threshold", "ms_roll_threshold", "number" )
       e.create_config( "OffSpec rolling threshold", "os_roll_threshold", "number" )
       this.tmog_rolling_enabled = e.create_config( "Enable transmog rolling", "tmog_rolling_enabled", "checkbox", nil, function( value )
