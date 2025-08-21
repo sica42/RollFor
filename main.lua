@@ -14,9 +14,6 @@ local RollSlashCommand = m.Types.RollSlashCommand
 local RollType = m.Types.RollType
 local RollingStrategy = m.Types.RollingStrategy
 
-_RollFor = M
-BINDING_HEADER_ROLLFOR = "RollFor"
-
 local function clear_data()
   M.softres_gui.clear()
   M.name_matcher.clear( true )
@@ -919,5 +916,7 @@ function M.on_chat_msg_addon( name, message, _, sender )
   end
 end
 
+---@type KeyBindings
+m.key_bindings = m.KeyBindings.new( M )
 m.EventHandler.handle_events( M )
 return M

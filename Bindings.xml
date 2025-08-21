@@ -1,5 +1,5 @@
 <Bindings>
-	<Binding name="Toggle options window" header="ROLLFOR">_RollFor.options_popup.toggle()</Binding>
-	<Binding name="Toggle SR import window" header="ROLLFOR">_RollFor.softres_gui.toggle()</Binding>
-	<Binding name="Toggle winners window" header="ROLLFOR">_RollFor.winners_popup.toggle()</Binding>
+	<Binding name="Toggle options window" header="ROLLFOR">RollFor.key_bindings.options_toggle()</Binding>
+	<Binding name="Toggle SR import window">RollFor.key_bindings.softres_toggle()</Binding>
+	<Binding name="Toggle winners window">RollFor.key_bindings.winners_toggle()</Binding>
 </Bindings>
