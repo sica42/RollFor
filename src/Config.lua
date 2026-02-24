@@ -70,6 +70,7 @@ function M.new( db, event_bus )
     if db.auto_loot == nil then db.auto_loot = true end
     if db.handle_plus_ones == nil then db.handle_plus_ones = false end
     if db.plus_one_prompt == nil then db.plus_one_prompt = false end
+    if db.sr_plus_multiplier == nil then db.sr_plus_multiplier = 1 end
     if db.auto_loot_announce == nil then db.auto_loot_announce = true end
     if db.loot_frame_cursor == nil then db.loot_frame_cursor = false end
     if db.client_show_roll_popup == nil then db.client_show_roll_popup = "Off" end
@@ -129,6 +130,10 @@ function M.new( db, event_bus )
     info( string.format( "Roll thresholds: %s %s, %s %s%s", hl( "MS" ), ms_threshold, hl( "OS" ), os_threshold, tmog_info ) )
   end
 
+  local function print_sr_plus_multiplier()
+    info( string.format( "SR+ multiplier: %s", hl( db.sr_plus_multiplier ) ) )
+  end
+
   local function print_transmog_rolling_setting( show_threshold )
     if m.bcc then return end
     local tmog_rolling_enabled = db.tmog_rolling_enabled
@@ -149,6 +154,7 @@ function M.new( db, event_bus )
     print_default_rolling_time()
     print_master_loot_frame_rows()
     print_roll_thresholds()
+    print_sr_plus_multiplier()
     print_transmog_rolling_setting()
 
     for toggle_key, setting in pairs( toggles ) do
@@ -262,6 +268,16 @@ function M.new( db, event_bus )
     info( string.format( "Usage: %s <threshold>", hl( "/rf config os" ) ) )
   end
 
+  local function configure_sr_plus_multiplier( args )
+    for value in string.gmatch( args, "config sr%-plus%-multiplier (%d+)" ) do
+      db.sr_plus_multiplier = tonumber( value )
+      print_sr_plus_multiplier()
+      return
+    end
+
+    info( string.format( "Usage: %s <multiplier>", hl( "/rf config sr-plus-multiplier" ) ) )
+  end
+
   local function configure_tmog_threshold( args )
     if args == "config tmog" then
       db.tmog_rolling_enabled = not db.tmog_rolling_enabled
@@ -306,6 +322,9 @@ function M.new( db, event_bus )
     m.print( string.format( "%s %s - set MS rolling threshold ", rfc( "ms" ), v( "threshold" ) ) )
     m.print( string.format( "%s - show OS rolling threshold ", rfc( "os" ) ) )
     m.print( string.format( "%s %s - set OS rolling threshold ", rfc( "os" ), v( "threshold" ) ) )
+    m.print( string.format( "%s - show SR+ multiplier ", rfc( "sr-plus-multiplier" ) ) )
+    m.print( string.format( "%s %s - set SR+ multiplier ", rfc( "sr-plus-multiplier" ), v( "multiplier" ) ) )
+
 
     if m.vanilla then
       m.print( string.format( "%s - toggle TMOG rolling", rfc( "tmog" ) ) )
@@ -421,6 +440,11 @@ function M.new( db, event_bus )
       return
     end
 
+    if string.find( args, "^config sr%-plus%-multiplier" ) then
+      configure_sr_plus_multiplier( args )
+      return
+    end
+
     if string.find( args, "^config tmog" ) then
       configure_tmog_threshold( args )
       return
@@ -493,6 +517,7 @@ function M.new( db, event_bus )
     ms_roll_threshold = get( "ms_roll_threshold" ),
     on_command = on_command,
     os_roll_threshold = get( "os_roll_threshold" ),
+    sr_plus_multiplier = get( "sr_plus_multiplier" ),
     print = print,
     print_help = print_help,
     print_raid_roll_settings = printfn( "auto_raid_roll" ),

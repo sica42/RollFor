@@ -35,7 +35,7 @@ function M.new( chat, roll_controller, softres, config )
       local sr_player = m.find( winners[ 1 ].name, sr_players, 'name' )
 
       if sr_player and sr_player.sr_plus then
-        local plus_value = sr_player.sr_plus
+        local plus_value = sr_player.sr_plus * config.sr_plus_multiplier()
         value = value - plus_value
         return string.format( "%s+%s=%s", value, plus_value, value + plus_value )
       end

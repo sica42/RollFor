@@ -205,7 +205,7 @@ function M.new(
     end
 
     if player.sr_plus then
-      roll = roll + player.sr_plus
+      roll = roll + (player.sr_plus * config.sr_plus_multiplier())
     end
 
     player.rolls = player.rolls - 1

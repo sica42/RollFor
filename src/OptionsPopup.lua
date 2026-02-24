@@ -330,6 +330,7 @@ function M.new( popup_builder, awarded_loot, version_broadcast, event_bus, confi
       e.create_config( "Show player roles", "show_player_roles", "checkbox", "Show player roles in rolling popup" )
       e.create_config( "MainSpec rolling threshold", "ms_roll_threshold", "number" )
       e.create_config( "OffSpec rolling threshold", "os_roll_threshold", "number" )
+      e.create_config( "SR+ multiplier", "sr_plus_multiplier", "number", "Multiplier applied to SR+ value when calculating rolls." )
       this.tmog_rolling_enabled = e.create_config( "Enable transmog rolling", "tmog_rolling_enabled", "checkbox", nil, function( value )
         if value then
           this:GetParent():GetParent().tmog_roll_threshold.input.enable()
