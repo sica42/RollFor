@@ -215,13 +215,13 @@ The addon keeps track of MS+1 standings if you enable it in the config.
 
 ### If you want to manually adjust MS+1 standings, use:
 #### Add +1 item to player:
-⚠️ use any item link, it doesn't have to be the actual item:
+⚠️ use the correct item link:
 ```
 /pl add <player name> <item link>
 ```
 
 #### Remove +1 item from player :
-⚠️ you should use the same item link as you used to add the item, otherwise it won't work:
+⚠️ use the correct item link:
 ```
 /pl remove <player name> <item link>
 ```
