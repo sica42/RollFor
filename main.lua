@@ -801,6 +801,104 @@ local function plus_ones_command( args )
   end
 end
 
+
+--local function announce_plus_ones_raid()
+--  local loot = M.awarded_loot.get_winners()
+--  local players = {}
+--  for _, award in ipairs(loot) do
+--    if award ~= nil then
+--      if not players[award.player_name] then
+--        players[award.player_name] = { award }
+--      else
+--        table.insert(players[award.player_name], award)
+--      end
+--    end
+--  end
+--
+--  SendChatMessage("MS+1 standings:", "RAID")
+--  for player_name, awards in pairs(players) do
+--    local plus_ones = m.filter(awards, (function(a) return a.plus_one end))
+--    if getn(plus_ones) > 0 then
+--      local count = getn(plus_ones)
+--      SendChatMessage(player_name .. " + " .. count, "RAID")
+--    end
+--  end
+--end
+
+local function announce_plus_ones_raid()
+  local loot = M.awarded_loot.get_winners()
+  local players = {}
+
+  -- Build player → awards table
+  for _, award in ipairs(loot) do
+    if award ~= nil then
+      if not players[award.player_name] then
+        players[award.player_name] = { award }
+      else
+        table.insert(players[award.player_name], award)
+      end
+    end
+  end
+
+  -- Build sortable list
+  local sorted = {}
+
+  for player_name, awards in pairs(players) do
+    local plus_ones = m.filter(awards, function(a) return a.plus_one end)
+    local count = getn(plus_ones)
+
+    if count > 0 then
+      table.insert(sorted, {
+        name = player_name,
+        count = count
+      })
+    end
+  end
+
+  -- Sort DESCENDING (highest first)
+  table.sort(sorted, function(a, b)
+    return a.count > b.count
+  end)
+
+  -- Announce
+  SendChatMessage("MS+1 standings:", "RAID")
+
+  for _, player in ipairs(sorted) do
+    SendChatMessage(player.name .. " + " .. player.count, "RAID")
+  end
+end
+
+
+local function announce_full_ms_list()
+    local loot = M.awarded_loot.get_winners()
+    local players = {}
+    for _, award in ipairs(loot) do
+        if award ~= nil then
+          if not players[award.player_name] then
+                players[award.player_name] = { award }
+          else
+            table.insert(players[award.player_name], award)
+          end
+        end
+    end
+
+    local plus_ones_exist = false
+    -- Announce
+    M.chat.announce("MS+1 loot history:")
+    for player_name, awards in pairs(players) do
+      local plus_ones = m.filter(awards, (function(a) return a.plus_one end))
+      if getn(plus_ones) > 0 then
+        plus_ones_exist = true
+        local item_list = table.concat(m.map(plus_ones, (function (a) return a.item_link end)), " ")
+        local colored_player_name = m.colorize_player_by_class( player_name, awards[1].player_class ) or grey( player_name )
+        M.chat.announce( colored_player_name .. green(" MS +" .. getn(plus_ones)) .. ": " .. item_list)
+      end
+    end
+    if not plus_ones_exist then
+      M.chat.announce("There are no +1's yet")
+    end
+end
+
 local function setup_slash_commands()
   -- Roll For commands
   SLASH_RF1 = RollSlashCommand.NormalRoll
@@ -842,7 +940,12 @@ local function setup_slash_commands()
 
 
   SLASH_PL1 = "/pl"
+  SLASH_PLR1 = "/plr"
   M.api().SlashCmdList[ "PL"] = plus_ones_command
+  M.api().SlashCmdList[ "PLR"] = announce_plus_ones_raid
+
+  SLASH_MSLIST1 = "/mslist"
+  M.api().SlashCmdList[ "MSLIST"] = announce_full_ms_list
 
   --SLASH_DROPPED1 = "/DROPPED"
   --M.api().SlashCmdList[ "DROPPED" ] = simulate_loot_dropped

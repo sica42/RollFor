@@ -69,6 +69,13 @@ function M.new( awarded_loot, roll_controller, winner_tracker, group_roster, sof
 
     local function on_confirm_plus_one(plus_one)
       awarded_loot.update_item(getn(awarded_loot.get_winners()), { plus_one = plus_one })
+
+      -- Auto announce MS+1 after +1 is applied
+      if plus_one then
+        if RollFor and RollFor.api and RollFor.api.SlashCmdList and RollFor.api.SlashCmdList["PLR"] then
+          RollFor.api.SlashCmdList["PLR"]()
+        end
+      end
     end
 
     if config.handle_plus_ones() and roll_data ~= nil and roll_data.roll_type == RollType.MainSpec then

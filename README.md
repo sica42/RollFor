@@ -198,6 +198,38 @@ The SR data from *Raidres* is a **Base64** encoded **JSON**. Decode it to see wh
 
 ---
 
+## MS+1 Standings
+
+The addon keeps track of MS+1 standings if you enable it in the config.
+
+![ms+1config.png](img/ms%2B1config.png)
+![ms+1overwiew.png](img/ms%2B1overwiew.png)
+![ms+1confirmbox.png](img/ms%2B1confirmbox.png)
+
+### If you want to announce the standings, use:
+#### Complete standings (automatically displayed after each +1 item is awarded):
+```
+/plr
+```
+![ms+1plraid.png](img/ms%2B1plraid.png)
+
+### If you want to manually adjust MS+1 standings, use:
+#### Add +1 item to player:
+```
+/pl add <player name> <item link>
+```
+
+#### Remove +1 item from player :
+```
+/pl remove <player name> <item link>
+```
+
+### If you want to display the complete MS+1 loot history, use:
+```
+/mslist
+```
+
+---
 
 ### Fixing mistyped player names in SR setup
 
