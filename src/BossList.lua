@@ -17,12 +17,39 @@ M.zones    = {
     "Solnius"
   },
   [ "Tower of Karazhan" ] = {
+    "Keeper Gnarlmoon",
+    "Ley-Watcher Incantagos",
+    "Anomalus",
+    "Echo of Medivh",
+    "King",
+    "Queen",
+    "Bishop",
+    "Rook",
+    "Ima'ghaol, Herald of Desolation",
+    "Sanv Tas'dal",
+    "Rupturan the Broken",
+    "Kruul",
+    "Mephistroth"
+  },
+  [ "Lower Karazhan Halls" ] = {
     "Master Blacksmith Rolfen",
     "Brood Queen Araxxna",
     "Grizikil",
     "Clawlord Howlfang",
     "Lord Blackwald II",
     "Moroes"
+  },
+  [ "Timbermaw Hold" ] = {
+    "Karrsh the Sentinel",
+    "Rotgrowl",
+    "Archdruid Kronn",
+    "Loktanag the Vile",
+    "Ormanos the Cracked",
+    "Trioch the Devourer",
+    "Selenaxx Foulheart",
+    "Chieftain Partath",
+    "Ursol",
+    "Peroth'arn"
   },
   [ "Zul'Gurub" ] = {
     "High Priestess Jeklik",
@@ -69,11 +96,59 @@ M.zones    = {
     "Ragnaros"
   },
   [ "Blackwing Lair" ] = {
+    "Ezzel Darkbrewer",
     "Razorgore the Untamed",
     "Vaelastrasz the Corrupt",
     "Broodlord Lashlayer",
     "Firemaw",
     "Ebonroc",
+    "Flamegor",
+    "Chromaggus",
+    "Nefarian"
+  },
+  [ "Onyxia's Lair" ] = {
+    "Onyxia"
+    "Broodcommander Axelus"
+  },
+  [ "Ahn'Qiraj" ] = {
+    "The Prophet Skeram",
+    "Vem",
+    "Lord Kri",
+    "Princess Yauj",
+    "Battleguard Sartura",
+    "Fankriss the Unyielding",
+    "Viscidus",
+    "Princess Huhuran",
+    "Emperor Vek'lor",
+    "Emperor Vek'nilash",
+    "Ouro",
+    "C'Thun"
+  },
+  [ "Naxxramas" ] = {
+    "Patchwerk",
+    "Grobbulus",
+    "Gluth",
+    "Thaddius",
+    "Anub'Rekhan",
+    "Grand Widow Faerlina",
+    "Maexxna",
+    "Noth the Plaguebringer",
+    "Heigan the Unclean",
+    "Loatheb",
+    "Instructor Razuvious",
+    "Gothik the Harvester",
+    "Thane Korth'azz",
+    "Lady Blaumeux",
+    "Highlord Mograine",
+    "Sir Zeliek",
+    "Sapphiron",
+    "Kel'Thuzad"
+  }
+}
+
+---@type BossList
+m.BossList = M
+return M    "Ebonroc",
     "Flamegor",
     "Chromaggus",
     "Nefarian"
