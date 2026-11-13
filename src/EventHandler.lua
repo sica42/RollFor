@@ -32,9 +32,17 @@ function M.handle_events( main )
 
     if not init then return end
 
+    if event == "GROUP_JOINED" or event == "GROUP_LEFT" or event == "GROUP_FORMED" then
+      main.group_roster.invalidate()
+    end
+
     if event == "GROUP_ROSTER_UPDATE" or event == "PARTY_MEMBERS_CHANGED" then
-      main.version_broadcast.on_group_changed()
-      main.on_group_changed()
+      main.group_roster.invalidate()
+      -- PERF (local change): the version is only broadcast, and the soft-res
+      -- matching only rerun, when someone joined or left the group
+      local names_changed = main.update_group_names()
+      if names_changed then main.version_broadcast.on_group_changed() end
+      main.on_group_changed( names_changed )
       main.new_group_event.on_group_changed()
     elseif event == "CHAT_MSG_PARTY" then
       main.roll_for_ad.on_chat_msg_party( arg1, arg2 )

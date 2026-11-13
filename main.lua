@@ -14,7 +14,29 @@ local RollSlashCommand = m.Types.RollSlashCommand
 local RollType = m.Types.RollType
 local RollingStrategy = m.Types.RollingStrategy
 
+-- PERF (local change): PARTY_MEMBERS_CHANGED fires for every roster detail
+-- (subgroup moves, online state, loot method...). The soft-res name matching
+-- it triggered allocated ~1.3 MB each time, although its result only depends on
+-- the names in the group and the soft-res data. It now runs only when those
+-- names change, after an import/clear, or once a minute (the minimap icon also
+-- reports soft-res data older than 6 hours).
+local last_group_names
+local last_group_check
+
+local function group_names_signature()
+  return M.group_roster.get_names_signature()
+end
+
+-- returns true when the names in the group changed since the last call
+function M.update_group_names()
+  local names = group_names_signature()
+  if names == last_group_names then return false end
+  last_group_names = names
+  return true
+end
+
 local function clear_data()
+  last_group_check = nil
   M.softres_gui.clear()
   M.name_matcher.clear( true )
   M.softres.clear( true )
@@ -454,6 +476,7 @@ local function subscribe_for_component_events()
 end
 
 function M.import_softres_data( softres_data )
+  last_group_check = nil
   M.unfiltered_softres.import( softres_data )
   M.name_matcher.auto_match()
 end
@@ -887,8 +910,12 @@ function M.unaward_item( player_name, item_id, item_link )
   info( string.format( "%s returned %s.", hl( player_name ), item_link ) )
 end
 
-function M.on_group_changed()
-  M.name_matcher.auto_match()
+function M.on_group_changed( names_changed )
+  local minute = math.floor( m.lua.time() / 60 )
+  if not names_changed and last_group_check == minute then return end
+  last_group_check = minute
+  -- the matching only depends on the group names and the soft-res data (import/clear rerun it)
+  if names_changed then M.name_matcher.auto_match() end
   update_minimap_icon()
 end
 
